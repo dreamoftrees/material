@@ -22,6 +22,7 @@
    * @param {expression} md-selected-item-change An expression to be run each time a new item is selected
    * @param {expression} md-search-text-change An expression to be run each time the search text updates
    * @param {boolean=} ng-disabled Determines whether or not to disable the input field
+   * @param {boolean=} ng-required Determines whether or not the model is required
    * @param {number=} md-min-length Specifies the minimum length of text before autocomplete will make suggestions
    * @param {number=} md-delay Specifies the amount of time (in milliseconds) to wait before looking for results
    * @param {boolean=} md-autofocus If true, will immediately focus the input element
@@ -55,6 +56,7 @@
         itemChange:    '&mdSelectedItemChange',
         textChange:    '&mdSearchTextChange',
         isDisabled:    '=ngDisabled',
+        isRequired:    '=ngRequired',
         minLength:     '=mdMinLength',
         delay:         '=mdDelay',
         autofocus:     '=?mdAutofocus',
@@ -69,6 +71,7 @@
                 id="fl-input-{{$mdAutocompleteCtrl.id}}"\
                 name="fl-input-{{$mdAutocompleteCtrl.id}}"\
                 autocomplete="off"\
+                ng-required="isRequired"\
                 ng-disabled="isDisabled"\
                 ng-model="$mdAutocompleteCtrl.scope.searchText"\
                 ng-keydown="$mdAutocompleteCtrl.keydown($event)"\
@@ -86,6 +89,7 @@
               name="input-{{$mdAutocompleteCtrl.id}}"\
               ng-if="!floatingLabel"\
               autocomplete="off"\
+              ng-required="isRequired"\
               ng-disabled="isDisabled"\
               ng-model="$mdAutocompleteCtrl.scope.searchText"\
               ng-keydown="$mdAutocompleteCtrl.keydown($event)"\
