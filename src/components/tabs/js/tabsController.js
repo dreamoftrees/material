@@ -23,6 +23,7 @@
     ctrl.attachRipple = attachRipple;
     ctrl.shouldStretchTabs = shouldStretchTabs;
     ctrl.shouldPaginate = shouldPaginate;
+    ctrl.shouldCenterTabs = shouldCenterTabs;
     ctrl.insertTab = insertTab;
     ctrl.removeTab = removeTab;
     ctrl.select = select;
@@ -97,7 +98,8 @@
     }
 
     function handleOffsetChange (left) {
-      angular.element(elements.paging).css('left', '-' + left + 'px');
+      var newValue = shouldCenterTabs() ? '' : '-' + left + 'px';
+      angular.element(elements.paging).css('left', newValue);
       $scope.$broadcast('$mdTabsPaginationChanged');
     }
 
@@ -113,6 +115,7 @@
     }
 
     function adjustOffset () {
+      if (shouldCenterTabs()) return;
       var tab = elements.tabs[ctrl.focusIndex],
           left = tab.offsetLeft,
           right = tab.offsetWidth + left;
@@ -170,6 +173,8 @@
       updateInkBarStyles();
       updateHeightFromContent();
       $scope.$broadcast('$mdTabsChanged');
+      ctrl.tabs[oldValue] && ctrl.tabs[oldValue].scope.deselect();
+      ctrl.tabs[newValue].scope.select();
     }
 
     function handleResizeWhenVisible () {
@@ -249,7 +254,12 @@
       }
     }
 
+    function shouldCenterTabs () {
+      return $scope.centerTabs && !shouldPaginate();
+    }
+
     function shouldPaginate () {
+      if ($scope.noPagination) return false;
       var canvasWidth = $element.prop('clientWidth');
       angular.forEach(elements.tabs, function (tab) { canvasWidth -= tab.offsetWidth; });
       return canvasWidth < 0;

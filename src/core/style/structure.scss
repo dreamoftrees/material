@@ -17,6 +17,15 @@ body {
   padding: 10px;
 }
 
+button.md-no-style {
+  font-weight: normal;
+  background-color: inherit;
+  text-align: left;
+  border: none;
+  padding: 0px;
+  margin: 0px;
+}
+
 select,
 button,
 textarea,
@@ -51,22 +60,6 @@ input {
     &::-webkit-search-decoration,
     &::-webkit-search-cancel-button {
       -webkit-appearance: none;
-    }
-  }
-}
-
-ul {
-  margin: 0;
-  padding: 0;
-
-  li {
-    margin-left: 16px;
-    padding: 0;
-    margin-top: 3px;
-    list-style-position: inside;
-
-    &:first-child {
-      margin-top: 0;
     }
   }
 }
@@ -142,5 +135,19 @@ ul {
   }
   &.md-ripple-active, &.md-ripple-full, &.md-ripple-visible {
     opacity: 0.20;
+  }
+}
+
+.md-padding {
+  padding: 8px;
+}
+
+.md-margin {
+  margin: 8px;
+}
+
+@media (min-width: $layout-breakpoint-sm) {
+  .md-padding {
+    padding: 16px;
   }
 }
