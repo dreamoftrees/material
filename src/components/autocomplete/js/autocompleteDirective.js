@@ -26,6 +26,7 @@
    * @param {number=} md-delay Specifies the amount of time (in milliseconds) to wait before looking for results
    * @param {boolean=} md-autofocus If true, will immediately focus the input element
    * @param {boolean=} md-autoselect If true, the first item will be selected by default
+   * @param {string=} md-menu-class This will be applied to the dropdown menu for styling
    *
    * @usage
    * <hljs lang="html">
@@ -39,7 +40,7 @@
    * </hljs>
    */
 
-  function MdAutocomplete () {
+  function MdAutocomplete ($mdTheming) {
     return {
       controller:   'MdAutocompleteCtrl',
       controllerAs: '$mdAutocompleteCtrl',
@@ -60,10 +61,14 @@
         delay:         '=?mdDelay',
         autofocus:     '=?mdAutofocus',
         floatingLabel: '@?mdFloatingLabel',
-        autoselect:    '=?mdAutoselect'
+        autoselect:    '=?mdAutoselect',
+        menuClass:     '@?mdMenuClass'
       },
       template: function (element, attr) {
+        //-- grab the original HTML for custom transclusion before Angular attempts to parse it
+        //-- the HTML is being stored on the attr object so that it is available to postLink
         attr.$mdAutocompleteTemplate = element.html();
+        //-- return the replacement template, which will wipe out the original HTML
         return '\
           <md-autocomplete-wrap role="listbox">\
             <md-input-container ng-if="floatingLabel">\
@@ -109,12 +114,13 @@
                 ng-if="$mdAutocompleteCtrl.scope.searchText && !isDisabled"\
                 ng-click="$mdAutocompleteCtrl.clear()">\
               <md-icon md-svg-icon="cancel"></md-icon>\
-              <span class="visually-hidden">Clear</span>\
+              <span class="md-visually-hidden">Clear</span>\
             </button>\
             <md-progress-linear\
                 ng-if="$mdAutocompleteCtrl.loading"\
                 md-mode="indeterminate"></md-progress-linear>\
             <ul role="presentation"\
+                class="md-autocomplete-suggestions {{menuClass || \'\'}}"\
                 id="ul-{{$mdAutocompleteCtrl.id}}"\
                 ng-mouseenter="$mdAutocompleteCtrl.listEnter()"\
                 ng-mouseleave="$mdAutocompleteCtrl.listLeave()"\
@@ -129,7 +135,7 @@
             </ul>\
           </md-autocomplete-wrap>\
           <aria-status\
-              class="visually-hidden"\
+              class="md-visually-hidden"\
               role="status"\
               aria-live="assertive">\
             <p ng-repeat="message in $mdAutocompleteCtrl.messages">{{message.display}}</p>\
@@ -139,11 +145,13 @@
 
     function link (scope, element, attr) {
       scope.contents = attr.$mdAutocompleteTemplate;
+      delete attr.$mdAutocompleteTemplate;
       angular.forEach(scope.$$isolateBindings, function (binding, key) {
         if (binding.optional && angular.isUndefined(scope[key])) {
           scope[key] = attr.hasOwnProperty(attr.$normalize(binding.attrName));
         }
       });
+      $mdTheming(element);
     }
   }
 })();

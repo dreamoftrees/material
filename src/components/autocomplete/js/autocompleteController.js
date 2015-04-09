@@ -4,7 +4,11 @@
       .module('material.components.autocomplete')
       .controller('MdAutocompleteCtrl', MdAutocompleteCtrl);
 
-  function MdAutocompleteCtrl ($scope, $element, $mdUtil, $mdConstant, $timeout) {
+  var ITEM_HEIGHT = 41,
+      MAX_HEIGHT = 5.5 * ITEM_HEIGHT,
+      MENU_PADDING = 16;
+
+  function MdAutocompleteCtrl ($scope, $element, $mdUtil, $mdConstant, $timeout, $mdTheming, $window) {
 
     //-- private variables
 
@@ -54,7 +58,52 @@
       $timeout(function () {
         gatherElements();
         focusElement();
+        moveDropdown();
       });
+    }
+
+    function positionDropdown () {
+      if (!elements) return $timeout(positionDropdown, 0, false);
+      var hrect  = elements.wrap.getBoundingClientRect(),
+          vrect  = elements.snap.getBoundingClientRect(),
+          root   = elements.root.getBoundingClientRect(),
+          top    = vrect.bottom - root.top,
+          bot    = root.height - vrect.top,
+          left   = hrect.left - root.left,
+          width  = hrect.width,
+          styles = {
+            left:     left + 'px',
+            minWidth: width + 'px',
+            maxWidth: Math.max(hrect.right - root.left, root.right - hrect.left) - MENU_PADDING + 'px',
+            opacity:  0
+          };
+      if (top > bot && root.height - hrect.bottom - MENU_PADDING < MAX_HEIGHT) {
+        styles.top = 'auto';
+        styles.bottom = bot + 'px';
+        styles.maxHeight = Math.min(MAX_HEIGHT, hrect.top - root.top - MENU_PADDING) + 'px';
+      } else {
+        styles.top = top + 'px';
+        styles.bottom = 'auto';
+        styles.maxHeight = Math.min(MAX_HEIGHT, root.height - hrect.bottom - MENU_PADDING) + 'px';
+      }
+      $timeout(correctHorizontalAlignment, 0, false);
+      elements.$.ul.css(styles);
+
+      function correctHorizontalAlignment () {
+        var dropdown = elements.ul.getBoundingClientRect(),
+            styles   = { opacity: 1 };
+        if (dropdown.right > root.right - MENU_PADDING) {
+          styles.left = (hrect.right - dropdown.width) + 'px';
+        }
+        elements.$.ul.css(styles);
+      }
+    }
+
+    function moveDropdown () {
+      if (!elements.$.root.length) return;
+      $mdTheming(elements.$.ul);
+      elements.$.ul.detach();
+      elements.$.root.append(elements.$.ul);
     }
 
     function focusElement () {
@@ -68,14 +117,37 @@
           : handleSearchText);
       registerSelectedItemWatcher(selectedItemChange);
       $scope.$watch('selectedItem', handleSelectedItemChange);
+      $scope.$watch('$mdAutocompleteCtrl.hidden', function (hidden, oldHidden) {
+        if (hidden && !oldHidden) positionDropdown();
+      });
+      angular.element($window).on('resize', positionDropdown);
     }
 
     function gatherElements () {
       elements = {
         main:  $element[0],
-        ul:    $element[0].getElementsByTagName('ul')[0],
-        input: $element[0].getElementsByTagName('input')[0]
+        ul:    $element.find('ul')[0],
+        input: $element.find('input')[0],
+        wrap:  $element.find('md-autocomplete-wrap')[0],
+        root:  document.body
       };
+      elements.snap = getSnapTarget();
+      elements.$ = getAngularElements(elements);
+    }
+
+    function getSnapTarget () {
+      for (var element = $element, max = 100; element.length; element = element.parent()) {
+        if (angular.isDefined(element.attr('md-autocomplete-snap'))) return element[0];
+      }
+      return elements.wrap;
+    }
+
+    function getAngularElements (elements) {
+      var obj = {};
+      for (var key in elements) {
+        obj[key] = angular.element(elements[key]);
+      }
+      return obj;
     }
 
     //-- event/change handlers
@@ -159,12 +231,12 @@
         case $mdConstant.KEY_CODE.UP_ARROW:
           if (self.loading) return;
           event.preventDefault();
-          self.index = Math.max(0, self.index - 1);
+          self.index = self.index < 0 ? self.matches.length - 1 : Math.max(0, self.index - 1);
           updateScroll();
           updateSelectionMessage();
           break;
         case $mdConstant.KEY_CODE.ENTER:
-          if (self.loading || self.index < 0) return;
+          if (self.hidden || self.loading || self.index < 0) return;
           event.preventDefault();
           select(self.index);
           break;
@@ -252,6 +324,7 @@
         self.matches = matches;
         self.hidden = shouldHide();
         updateMessages();
+        positionDropdown();
       }
     }
 
@@ -271,9 +344,9 @@
     }
 
     function updateScroll () {
-      var top = 41 * self.index,
-          bot = top + 41,
-          hgt = 41 * 5.5;
+      var top = ITEM_HEIGHT * self.index,
+          bot = top + ITEM_HEIGHT,
+          hgt = elements.ul.clientHeight;
       if (top < elements.ul.scrollTop) {
         elements.ul.scrollTop = top;
       } else if (bot > elements.ul.scrollTop + hgt) {
