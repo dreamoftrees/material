@@ -8,7 +8,6 @@ var glob = require('glob').sync;
 var gulp = require('gulp');
 var karma = require('karma').server;
 var lazypipe = require('lazypipe');
-var mergeStream = require('merge-stream');
 var path = require('path');
 var pkg = require('./package.json');
 var series = require('stream-series');
@@ -156,14 +155,27 @@ gulp.task('karma', function(done) {
   };
 
   gutil.log('Running unit tests on unminified source.');
-  karma.start(karmaConfig, done);
+  buildJs(true);
+  karma.start(karmaConfig, testMinified);
 
-  //function testMinified() {
-  //  gutil.log('Running unit tests on minified source.');
-  //  buildJs(true);
-  //  karmaConfig.releaseMode = true;
-  //  karma.start(karmaConfig, done);
-  //}
+  function testMinified() {
+    gutil.log('Running unit tests on minified source.');
+    process.env.KARMA_TEST_COMPRESSED = true;
+    karma.start(karmaConfig, testMinifiedJquery);
+  }
+
+  function testMinifiedJquery() {
+    gutil.log('Running unit tests on minified source w/ jquery.');
+    process.env.KARMA_TEST_COMPRESSED = true;
+    process.env.KARMA_TEST_JQUERY = true;
+    karma.start(karmaConfig, clearEnv);
+  }
+
+  function clearEnv() {
+    process.env.KARMA_TEST_COMPRESSED = undefined;
+    process.env.KARMA_TEST_JQUERY = undefined;
+    done();
+  }
 });
 
 gulp.task('karma-watch', function(done) {
@@ -202,7 +214,7 @@ gulp.task('build-all-modules', function() {
 
       var stream;
       if (IS_RELEASE_BUILD && BUILD_MODE.useBower) {
-        stream = mergeStream(buildModule(moduleId, true), buildModule(moduleId, false));
+        stream = series(buildModule(moduleId, true), buildModule(moduleId, false));
       } else {
         stream = buildModule(moduleId, false);
       }

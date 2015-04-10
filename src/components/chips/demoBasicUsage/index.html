@@ -7,7 +7,10 @@
 
     <md-chips ng-model="ctrl.roFruitNames"
               readonly="ctrl.readonly">
-      <md-chip-template>fruit:<strong>{{$chip}}</strong></md-chip-template>
+      <md-chip-template>
+        <strong>{{$chip}}</strong>
+        <em>(fruit)</em>
+      </md-chip-template>
     </md-chips>
 
     <p>
@@ -19,7 +22,7 @@
             readonly="ctrl.readonly"></md-chips>
 
     <p>
-      Use Placeholders.
+      Use Placeholders and override hint texts.
     </p>
 
     <md-chips
@@ -34,13 +37,20 @@
         Display an ordered set of objects as chips (with custom template).
     </p>
 
-    <md-chips ng-model="ctrl.vegObjs"
-              readonly="ctrl.readonly"
-              md-on-append="ctrl.newVeg($chip)">
+    <md-chips
+        class="custom-chips"
+        ng-model="ctrl.vegObjs"
+        readonly="ctrl.readonly"
+        md-on-append="ctrl.newVeg($chip)">
         <md-chip-template>
-          <span>{{$chip.name}}:{{$chip.type}}</span>
-          <md-button md-chip-remove  md-no-ink class="md-primary vegetablechip">del</md-button>
+          <span>
+            <strong>{{$chip.name}}</strong>
+            <em>({{$chip.type}})</em>
+          </span>
         </md-chip-template>
+        <button md-chip-remove class="md-primary vegetablechip">
+          <md-icon md-svg-icon="close"></md-icon>
+        </button>
     </md-chips>
 
     <br/>

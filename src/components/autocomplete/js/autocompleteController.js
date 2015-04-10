@@ -136,7 +136,7 @@
     }
 
     function getSnapTarget () {
-      for (var element = $element, max = 100; element.length; element = element.parent()) {
+      for (var element = $element; element.length; element = element.parent()) {
         if (angular.isDefined(element.attr('md-autocomplete-snap'))) return element[0];
       }
       return elements.wrap;
