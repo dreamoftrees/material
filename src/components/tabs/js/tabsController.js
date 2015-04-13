@@ -5,8 +5,10 @@
       .module('material.components.tabs')
       .controller('MdTabsController', MdTabsController);
 
-  function MdTabsController ($scope, $element, $window, $timeout, $mdConstant, $mdInkRipple, $mdUtil) {
+  function MdTabsController ($scope, $element, $window, $timeout, $mdConstant, $mdInkRipple,
+                             $mdUtil, $animate) {
     var ctrl = this,
+        locked = false,
         elements = getElements();
 
     ctrl.scope = $scope;
@@ -79,7 +81,7 @@
         case $mdConstant.KEY_CODE.SPACE:
         case $mdConstant.KEY_CODE.ENTER:
           event.preventDefault();
-          $scope.selectedIndex = ctrl.focusIndex;
+          if (!locked) $scope.selectedIndex = ctrl.focusIndex;
           break;
       }
       ctrl.lastClick = false;
@@ -125,7 +127,6 @@
 
     function handleWindowResize () {
       ctrl.lastSelectedIndex = $scope.selectedIndex;
-      updateHeightFromContent();
       updateInkBarStyles();
       ctrl.offsetLeft = fixOffset(ctrl.offsetLeft);
     }
@@ -168,6 +169,7 @@
 
     function handleSelectedIndexChange (newValue, oldValue) {
       if (newValue === oldValue) return;
+
       $scope.selectedIndex = getNearestSafeIndex(newValue);
       ctrl.lastSelectedIndex = oldValue;
       updateInkBarStyles();
@@ -200,11 +202,25 @@
 
     function updateHeightFromContent () {
       if (!$scope.dynamicHeight) return $element.css('height', '');
-      var tabContent = elements.contents[$scope.selectedIndex],
+      var tabContent    = elements.contents[$scope.selectedIndex],
           contentHeight = tabContent.offsetHeight,
           tabsHeight    = elements.wrapper.offsetHeight,
-          newHeight     = contentHeight + tabsHeight;
-      $element.css('height', newHeight + 'px');
+          newHeight     = contentHeight + tabsHeight,
+          currentHeight = $element.prop('clientHeight');
+      if (currentHeight === newHeight) return;
+      locked = true;
+      $animate
+          .animate(
+            $element,
+            { height: currentHeight + 'px' },
+            { height: newHeight + 'px'}
+          )
+          .then(function () {
+            $timeout(function () {
+              $element.css('height', '');
+              locked = false;
+            }, 0, false);
+          });
     }
 
     function updateInkBarStyles () {
@@ -266,7 +282,7 @@
     }
 
     function select (index) {
-      ctrl.focusIndex = $scope.selectedIndex = index;
+      if (!locked) ctrl.focusIndex = $scope.selectedIndex = index;
       ctrl.lastClick = true;
     }
 

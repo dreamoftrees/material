@@ -48,7 +48,7 @@ md-list-item {
     }
   }
   &.md-with-secondary {
-    padding-right: $list-item-padding-horizontal;
+    position: relative;
   }
   &.md-clickable:hover {
     cursor: pointer;
@@ -56,8 +56,8 @@ md-list-item {
 
   md-divider {
     position: absolute;
-    bottom: 0px;
-    left: 0px;
+    bottom: 0;
+    left: 0;
     width: 100%;
     &[md-inset] {
       left: $list-item-inset-divider-offset;
@@ -100,7 +100,7 @@ md-list-item, md-list-item .md-list-item-inner {
     margin-bottom: 12px;
     align-self: center;
     .md-label { display: none; }
-    &:not(md-checkbox:first-child):focus {
+    &:not(:first-child):focus {
       padding: 6px;
       margin-right: -6px;
       margin-top: 8px;
@@ -126,16 +126,15 @@ md-list-item, md-list-item .md-list-item-inner {
     box-sizing: content-box;
   }
 
-  md-checkbox.md-secondary {
-    margin-right: 0px;
-  }
+  md-checkbox.md-secondary,
   md-switch.md-secondary {
-    margin: 0;
-    position: relative;
-    right: -9px;
+    margin-right: 0;
   }
   .md-secondary {
     margin-left: $list-item-secondary-left-margin;
+    position: absolute;
+    right: $list-item-padding-horizontal;
+    top: 0;
   }
 
   & > p, & > .md-list-item-inner > p {
@@ -155,6 +154,10 @@ md-list-item.md-3-line > .md-no-style {
     flex: 1;
     padding: $baseline-grid * 2 0;
     text-overflow: ellipsis;
+
+    &.md-offset {
+      margin-left: $list-item-primary-width;
+    }
 
     h3 {
       margin: $list-h3-margin;
@@ -178,9 +181,11 @@ md-list-item.md-3-line > .md-no-style {
 
 md-list-item.md-2-line,
 md-list-item.md-2-line > .md-no-style {
-  > md-icon:first-child, 
   > .md-avatar:first-child {
     margin-top: $baseline-grid * 1.5;
+  }
+  > md-icon:first-child {
+    align-self: center;
   }
   .md-list-item-text {
     flex: 1;
