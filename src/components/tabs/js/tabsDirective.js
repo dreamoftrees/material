@@ -73,9 +73,9 @@
  *       {{tab.title}}
  *       <img src="img/removeTab.png" ng-click="removeTab(tab)" class="delete">
  *     </md-tab-label>
- *     <md-tab-template>
+ *     <md-tab-body>
  *       {{tab.content}}
- *     </md-tab-template>
+ *     </md-tab-body>
  *   </md-tab>
  * </md-tabs>
  * </hljs>
@@ -136,11 +136,11 @@
                   tabindex="-1"\
                   class="md-tab"\
                   style="max-width: {{ tabWidth ? tabWidth + \'px\' : \'none\' }}"\
-                  role="tab"\
-                  aria-selected="{{tab.isActive()}}"\
-                  aria-disabled="{{tab.scope.disabled}}"\
-                  aria-controls="tab-content-{{tab.id}}"\
                   ng-repeat="tab in $mdTabsCtrl.tabs"\
+                  role="tab"\
+                  aria-controls="tab-content-{{tab.id}}"\
+                  aria-selected="{{tab.isActive()}}"\
+                  aria-disabled="{{tab.scope.disabled || \'false\'}}"\
                   ng-click="$mdTabsCtrl.select(tab.getIndex())"\
                   ng-class="{\
                       \'md-active\':    tab.isActive(),\
@@ -153,14 +153,14 @@
                   md-label-template="tab.label"></md-tab-item>\
               <md-ink-bar ng-hide="noInkBar"></md-ink-bar>\
             </md-pagination-wrapper>\
-            <div class="md-visually-hidden">\
+            <div class="md-visually-hidden md-dummy-wrapper">\
               <md-dummy-tab\
                   tabindex="-1"\
                   id="tab-item-{{tab.id}}"\
                   role="tab"\
                   aria-controls="tab-content-{{tab.id}}"\
                   aria-selected="{{tab.isActive()}}"\
-                  aria-disabled="{{tab.scope.disabled}}"\
+                  aria-disabled="{{tab.scope.disabled || \'false\'}}"\
                   ng-focus="$mdTabsCtrl.hasFocus = true"\
                   ng-blur="$mdTabsCtrl.hasFocus = false"\
                   ng-repeat="tab in $mdTabsCtrl.tabs"\

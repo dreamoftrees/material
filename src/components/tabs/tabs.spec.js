@@ -138,12 +138,18 @@ describe('<md-tabs>', function() {
                        '<md-tab></md-tab>' +
                        '</md-tabs>');
       var tabItems = tabs.find('md-tab-item');
+      var dummyTabs = tabs.find('md-dummy-tab');
 
       expect(tabItems.eq(0)).toBeActiveTab();
       expect(tabs.scope().current).toBe(0);
+      expect(dummyTabs.eq(0).attr('aria-selected')).toBe('true');
 
       tabs.scope().$apply('current = 1');
       expect(tabItems.eq(1)).toBeActiveTab();
+
+      expect(tabItems.eq(0).attr('aria-selected')).toBe('false');
+      expect(dummyTabs.eq(0).attr('aria-selected')).toBe('false');
+      expect(dummyTabs.eq(1).attr('aria-selected')).toBe('true');
 
       tabItems.eq(2).triggerHandler('click');
       expect(tabs.scope().current).toBe(2);
@@ -155,18 +161,26 @@ describe('<md-tabs>', function() {
                        '<md-tab ng-disabled="disabled1"></md-tab>' +
                        '</md-tabs>');
       var tabItems = tabs.find('md-tab-item');
+      var dummyTabs = tabs.find('md-dummy-tab');
 
       expect(tabItems.eq(0)).toBeActiveTab();
+      expect(dummyTabs.eq(0).attr('aria-selected')).toBe('true');
 
       tabs.scope().$apply('disabled0 = true');
       expect(tabItems.eq(1)).toBeActiveTab();
+
       expect(tabItems.eq(0).attr('aria-disabled')).toBe('true');
-      expect(tabItems.eq(1).attr('aria-disabled')).not.toBe('true');
+      expect(dummyTabs.eq(0).attr('aria-disabled')).toBe('true');
+      expect(tabItems.eq(1).attr('aria-disabled')).toBe('false');
+      expect(dummyTabs.eq(1).attr('aria-disabled')).toBe('false');
 
       tabs.scope().$apply('disabled0 = false; disabled1 = true');
       expect(tabItems.eq(0)).toBeActiveTab();
-      expect(tabItems.eq(0).attr('aria-disabled')).not.toBe('true');
+
+      expect(tabItems.eq(0).attr('aria-disabled')).toBe('false');
+      expect(dummyTabs.eq(0).attr('aria-disabled')).toBe('false');
       expect(tabItems.eq(1).attr('aria-disabled')).toBe('true');
+      expect(dummyTabs.eq(1).attr('aria-disabled')).toBe('true');
     });
 
     it('swiping tabs', function() {
@@ -231,7 +245,7 @@ describe('<md-tabs>', function() {
       var tabs2 = setup('<md-tabs>\
         <md-tab>\
           <md-tab-label>label that!</md-tab-label>\
-          <md-tab-template><b>content</b> that!</md-tab-template>\
+          <md-tab-body><b>content</b> that!</md-tab-body>\
         </md-tab>\
       </md-tabs>');
       expect(tabs1.find('md-tab-item').text()).toBe('label that!');

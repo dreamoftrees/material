@@ -111,6 +111,7 @@
                 aria-expanded="{{!$mdAutocompleteCtrl.hidden}}"/>\
             <button\
                 type="button"\
+                tabindex="-1"\
                 ng-if="$mdAutocompleteCtrl.scope.searchText && !isDisabled"\
                 ng-click="$mdAutocompleteCtrl.clear()">\
               <md-icon md-svg-icon="cancel"></md-icon>\

@@ -23,26 +23,11 @@ md-tabs {
   border-radius: 2px;
   overflow: hidden;
   position: relative;
-  transition: height $swift-ease-in-out-duration $swift-ease-in-out-timing-function;
-  &:not(.md-no-tab-content) {
+  &.ng-animate {
+    transition: height $swift-ease-in-out-duration $swift-ease-in-out-timing-function;
+  }
+  &:not(.md-no-tab-content):not([md-dynamic-height]) {
     min-height: 200 + $tabs-header-height;
-  }
-  &[md-align-tabs="bottom"] {
-    padding-bottom: $tabs-header-height;
-    position: relative;
-  }
-  &[md-dynamic-height] {
-    md-tabs-content-wrapper {
-      min-height: 0;
-      position: relative;
-      top: 0; left: 0; right: 0; bottom: 0;
-      overflow: visible;
-    }
-    md-tab-content {
-      &:not(.md-left):not(.md-right):not(.ng-animate) {
-        position: relative;
-      }
-    }
   }
   &[md-align-tabs="bottom"] {
     md-tabs-wrapper {
@@ -52,11 +37,31 @@ md-tabs {
       right: 0;
       height: $tabs-header-height;
     }
+    md-tabs-content-wrapper {
+      top: 0;
+      bottom: $tabs-header-height;
+    }
+  }
+  &[md-dynamic-height] {
+    md-tabs-content-wrapper {
+      min-height: 0;
+      position: relative;
+      top: auto; left: auto; right: auto; bottom: auto;
+      overflow: visible;
+    }
+    md-tab-content {
+      &.md-active {
+        position: relative;
+      }
+    }
   }
   &[md-border-bottom] {
     md-tabs-wrapper {
       border-width: 0 0 1px;
       border-style: solid;
+      .md-tab {
+        padding-bottom: 11px;
+      }
     }
   }
 }
@@ -119,6 +124,11 @@ md-tabs-canvas {
   position: relative;
   overflow: hidden;
   display: block;
+  .md-dummy-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
   &.md-paginated {
     margin: 0 $tabs-paginator-width;
   }
@@ -140,7 +150,6 @@ md-pagination-wrapper {
 }
 md-tabs-content-wrapper {
   display: block;
-  min-height: 200px;
   position: absolute;
   top: $tabs-header-height; left: 0; right: 0; bottom: 0;
   overflow: hidden;

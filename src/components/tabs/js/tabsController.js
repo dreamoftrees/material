@@ -216,10 +216,8 @@
             { height: newHeight + 'px'}
           )
           .then(function () {
-            $timeout(function () {
-              $element.css('height', '');
-              locked = false;
-            }, 0, false);
+            $element.css('height', '');
+            locked = false;
           });
     }
 
@@ -293,7 +291,7 @@
     }
 
     function fixOffset (value) {
-      if (!elements.tabs.length) return;
+      if (!elements.tabs.length || !shouldPaginate()) return 0;
       var lastTab = elements.tabs[elements.tabs.length - 1],
           totalWidth = lastTab.offsetLeft + lastTab.offsetWidth;
       value = Math.max(0, value);

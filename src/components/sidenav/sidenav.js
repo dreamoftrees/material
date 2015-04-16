@@ -114,8 +114,10 @@ function SidenavService($mdComponentRegistry, $q) {
   };
 }
 /**
- * @private
+ * @ngdoc directive
  * @name mdSidenavFocus
+ * @module material.components.sidenav
+ *
  * @restrict A
  *
  * @description
@@ -289,13 +291,15 @@ function SidenavDirective($timeout, $animate, $parse, $log, $mdMedia, $mdConstan
       disableParentScroll(isOpen);
 
       return promise = $q.all([
-        isOpen ? $animate.enter(backdrop, parent) : $animate.leave(backdrop),
-        $animate[isOpen ? 'removeClass' : 'addClass'](element, 'md-closed').then(function() {
-          if (scope.isOpen) {
-            focusEl && focusEl.focus();
-          }
-        })
-      ]);
+                isOpen ? $animate.enter(backdrop, parent) : $animate.leave(backdrop),
+                $animate[isOpen ? 'removeClass' : 'addClass'](element, 'md-closed')
+              ])
+              .then(function() {
+                // Perform focus when animations are ALL done...
+                if (scope.isOpen) {
+                  focusEl && focusEl.focus();
+                }
+              });
     }
 
     /**
