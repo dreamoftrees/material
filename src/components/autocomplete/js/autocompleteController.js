@@ -212,11 +212,23 @@
       if (!noBlur) self.hidden = true;
     }
 
-    function focus () {
-      //-- if searchText is null, let's force it to be a string
-      if (!angular.isString($scope.searchText)) return $scope.searchText = '';
-      self.hidden = shouldHide();
-      if (!self.hidden) handleQuery();
+    function focus (event) {
+      var autoSearch = true;
+
+      //-- ignore when focusing from child list item
+      if(event && event.relatedTarget) {
+        var relatedScope = angular.element(event.relatedTarget).scope();
+        if (relatedScope.item) {
+          autoSearch = false;
+        }
+      }
+
+      if(autoSearch) {
+        //-- if searchText is null, let's force it to be a string
+        if (!angular.isString($scope.searchText)) return $scope.searchText = '';
+        self.hidden = shouldHide();
+        if (!self.hidden) handleQuery();
+      }
     }
 
     function keydown (event) {
