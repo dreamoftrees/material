@@ -216,8 +216,9 @@
       var autoSearch = true;
 
       //-- ignore when focusing from child list item
-      if(event && event.relatedTarget) {
-        var relatedScope = angular.element(event.relatedTarget).scope();
+      if(event) {
+        var relatedTarget = event.relatedTarget || event.originalEvent.explicitOriginalTarget || document.activeElement;
+        var relatedScope = angular.element(relatedTarget).scope();
         if (relatedScope.item) {
           autoSearch = false;
         }
