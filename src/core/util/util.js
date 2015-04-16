@@ -79,9 +79,9 @@ angular.module('material.core')
         disableTarget.css('overflow-y', 'scroll');
       }
 
+      // CM: problem with md-select.. position: 'fixed',
       wrapperEl.css({
         overflow: 'hidden',
-        position: 'fixed',
         width: '100%',
         'padding-top': computedStyle.paddingTop,
         top: (-1 * heightOffset) + 'px'
