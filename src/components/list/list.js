@@ -1,6 +1,3 @@
-(function() {
-'use strict';
-
 /**
  * @ngdoc module
  * @name material.components.list
@@ -10,6 +7,7 @@
 angular.module('material.components.list', [
   'material.core'
 ])
+  .controller('MdListController', MdListController)
   .directive('mdList', mdListDirective)
   .directive('mdListItem', mdListItemDirective);
 
@@ -46,7 +44,6 @@ function mdListDirective($mdTheming) {
     }
   };
 }
-
 /**
  * @ngdoc directive
  * @name mdListItem
@@ -67,10 +64,11 @@ function mdListDirective($mdTheming) {
  * </hljs>
  *
  */
-function mdListItemDirective($mdAria) {
+function mdListItemDirective($mdAria, $mdConstant, $timeout) {
   var proxiedTypes = ['md-checkbox', 'md-switch'];
   return {
     restrict: 'E',
+    controller: 'MdListController',
     compile: function(tEl, tAttrs) {
       // Check for proxy controls (no ng-click on parent, and a control inside)
       var secondaryItem = tEl[0].querySelector('.md-secondary');
@@ -120,7 +118,7 @@ function mdListItemDirective($mdAria) {
           container.append(tEl.contents());
           tEl.addClass('md-proxy-focus');
         } else {
-          container = angular.element('<button tabindex="0" class="md-no-style"><div class="md-list-item-inner"></div></button>');
+          container = angular.element('<md-button class="md-no-style"><div class="md-list-item-inner"></div></md-button>');
           container[0].setAttribute('ng-click', tEl[0].getAttribute('ng-click'));
           tEl[0].removeAttribute('ng-click');
           container.children().eq(0).append(tEl.contents());
@@ -131,6 +129,13 @@ function mdListItemDirective($mdAria) {
 
         if (secondaryItem && secondaryItem.hasAttribute('ng-click')) {
           $mdAria.expect(secondaryItem, 'aria-label');
+          var buttonWrapper = angular.element('<md-button class="md-secondary-container md-icon-button">');
+          buttonWrapper.attr('ng-click', secondaryItem.getAttribute('ng-click'));
+          secondaryItem.removeAttribute('ng-click');
+          secondaryItem.setAttribute('tabindex', '-1');
+          secondaryItem.classList.remove('md-secondary');
+          buttonWrapper.append(secondaryItem);
+          secondaryItem = buttonWrapper[0];
         }
 
         // Check for a secondary item and move it outside
@@ -150,9 +155,11 @@ function mdListItemDirective($mdAria) {
 
       return postLink;
 
-      function postLink($scope, $element, $attr) {
+      function postLink($scope, $element, $attr, ctrl) {
 
-        var proxies = [];
+        var proxies    = [],
+            firstChild = $element[0].firstElementChild,
+            hasClick   = firstChild && firstChild.hasAttribute('ng-click');
 
         computeProxies();
         computeClickable();
@@ -160,8 +167,16 @@ function mdListItemDirective($mdAria) {
         if ($element.hasClass('md-proxy-focus') && proxies.length) {
           angular.forEach(proxies, function(proxy) {
             proxy = angular.element(proxy);
-            proxy.on('focus', function() {
-              $element.addClass('md-focused');
+
+            $scope.mouseActive = false;
+            proxy.on('mousedown', function() {
+              $scope.mouseActive = true;
+              $timeout(function(){
+                $scope.mouseActive = false;
+              }, 100);
+            })
+            .on('focus', function() {
+              if ($scope.mouseActive === false) { $element.addClass('md-focused'); }
               proxy.on('blur', function proxyOnBlur() {
                 $element.removeClass('md-focused');
                 proxy.off('blur', proxyOnBlur);
@@ -171,26 +186,32 @@ function mdListItemDirective($mdAria) {
         }
 
         function computeProxies() {
-          if (!$element.children()[0].hasAttribute('ng-click')) {
+          var children = $element.children();
+          if (children.length && !children[0].hasAttribute('ng-click')) {
             angular.forEach(proxiedTypes, function(type) {
-              angular.forEach($element[0].firstElementChild.querySelectorAll(type), function(child) {
+              angular.forEach(firstChild.querySelectorAll(type), function(child) {
                 proxies.push(child);
               });
             });
           }
         }
         function computeClickable() {
-          if (proxies.length || $element[0].firstElementChild.hasAttribute('ng-click')) {
+          if (proxies.length || hasClick) {
             $element.addClass('md-clickable');
+
+            ctrl.attachRipple($scope, angular.element($element[0].querySelector('.md-no-style')));
           }
         }
 
-        if (!$element[0].firstElementChild.hasAttribute('ng-click') && !proxies.length) {
-          $element[0].firstElementChild.addEventListener('keypress', function(e) {
-            if (e.keyCode == 13 || e.keyCode == 32) {
-              $element[0].firstElementChild.click();
-              e.preventDefault();
-              e.stopPropagation();
+        if (!hasClick && !proxies.length) {
+          firstChild.addEventListener('keypress', function(e) {
+            if (e.target.nodeName != 'INPUT' && e.target.nodeName != 'TEXTAREA') {
+              var keyCode = e.which || e.keyCode;
+              if (keyCode == $mdConstant.KEY_CODE.SPACE) {
+                firstChild.click();
+                e.preventDefault();
+                e.stopPropagation();
+              }
             }
           });
         }
@@ -198,13 +219,12 @@ function mdListItemDirective($mdAria) {
         $element.off('click');
         $element.off('keypress');
 
-        if (proxies.length) {
+        if (proxies.length && firstChild) {
           $element.children().eq(0).on('click', function(e) {
-            if ($element[0].firstElementChild.contains(e.target)) {
+            if (firstChild.contains(e.target)) {
               angular.forEach(proxies, function(proxy) {
                 if (e.target !== proxy && !proxy.contains(e.target)) {
                   angular.element(proxy).triggerHandler('click');
-                  proxy.focus();
                 }
               });
             }
@@ -214,4 +234,20 @@ function mdListItemDirective($mdAria) {
     }
   };
 }
-})();
+
+/*
+ * @private
+ * @ngdoc controller
+ * @name MdListController
+ * @module material.components.list
+ *
+ */
+function MdListController($scope, $element, $mdInkRipple) {
+  var ctrl = this;
+  ctrl.attachRipple = attachRipple;
+
+  function attachRipple (scope, element) {
+    var options = {};
+    $mdInkRipple.attachListControlBehavior(scope, element, options);
+  }
+}

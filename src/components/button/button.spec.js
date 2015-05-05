@@ -70,6 +70,12 @@ describe('md-button', function() {
       expect(button[0].tagName.toLowerCase()).toEqual('a');
     }));
 
+    it('should be anchor if ng-link attr', inject(function($compile, $rootScope) {
+      var button = $compile('<md-button ng-link="component">')($rootScope.$new());
+      $rootScope.$apply();
+      expect(button[0].tagName.toLowerCase()).toEqual('a');
+    }));
+
     it('should be button otherwise', inject(function($compile, $rootScope) {
       var button = $compile('<md-button>')($rootScope.$new());
       $rootScope.$apply();
@@ -110,6 +116,31 @@ describe('md-button', function() {
 
       expect(button.attr('tabindex')).toBe("-1");
     }));
+
+    it('should not trigger click on button when disabled', inject(function ($compile, $rootScope) {
+      var clicked = false;
+      var onClick = function(){ clicked = true;};
+      var scope   = angular.extend( $rootScope.$new(), { isDisabled : true, onClick : onClick} );
+
+      var element = $compile('<md-button ng-disabled="isDisabled" ng-click="onClick()">button</md-button>')(scope);
+      $rootScope.$apply();
+
+      element.find('button').triggerHandler('click');
+      expect(clicked).toBe(false);
+    }));
+
+    it('should not trigger click on anchor when disabled', inject(function ($compile, $rootScope) {
+      var clicked = false;
+      var onClick = function(){ clicked = true;};
+      var scope   = angular.extend( $rootScope.$new(), { isDisabled : true, onClick : onClick} );
+
+      var element = $compile('<md-button ng-disabled="isDisabled" ng-href="#" ng-click="onClick()">button</md-button>')(scope);
+      $rootScope.$apply();
+
+      element.find('a').triggerHandler('click');
+      expect(clicked).toBe(false);
+    }));
+
 
   });
 

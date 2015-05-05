@@ -1,6 +1,3 @@
-(function() {
-'use strict';
-
 /**
  * @ngdoc module
  * @name material.components.button
@@ -8,10 +5,9 @@
  *
  * Button
  */
-angular.module('material.components.button', [
-  'material.core'
-])
-  .directive('mdButton', MdButtonDirective);
+angular
+    .module('material.components.button', [ 'material.core' ])
+    .directive('mdButton', MdButtonDirective);
 
 /**
  * @ngdoc directive
@@ -56,6 +52,9 @@ angular.module('material.components.button', [
  *  <md-button class="md-fab md-mini" aria-label="Mini FAB">
  *    <md-icon md-svg-src="your/icon.svg"></md-icon>
  *  </md-button>
+ *  <md-button class="md-icon-button" aria-label="Custom Icon Button">
+ *    <md-icon md-svg-icon="path/to/your.svg"></md-icon>
+ *  </md-button>
  * </hljs>
  */
 function MdButtonDirective($mdInkRipple, $mdTheming, $mdAria, $timeout) {
@@ -69,7 +68,7 @@ function MdButtonDirective($mdInkRipple, $mdTheming, $mdAria, $timeout) {
   };
 
   function isAnchor(attr) {
-    return angular.isDefined(attr.href) || angular.isDefined(attr.ngHref) || angular.isDefined(attr.uiSref);
+    return angular.isDefined(attr.href) || angular.isDefined(attr.ngHref) || angular.isDefined(attr.ngLink) || angular.isDefined(attr.uiSref);
   }
   
   function getTemplate(element, attr) {
@@ -96,6 +95,14 @@ function MdButtonDirective($mdInkRipple, $mdTheming, $mdAria, $timeout) {
       });
     }
 
+    // disabling click event when disabled is true
+    element.on('click', function(e){
+      if (attr.disabled === true) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+      }
+    });
+
     // restrict focus styles to the keyboard
     scope.mouseActive = false;
     element.on('mousedown', function() {
@@ -111,4 +118,3 @@ function MdButtonDirective($mdInkRipple, $mdTheming, $mdAria, $timeout) {
   }
 
 }
-})();

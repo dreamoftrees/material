@@ -81,27 +81,24 @@
  * </hljs>
  *
  */
+angular
+    .module('material.components.tabs')
+    .directive('mdTabs', MdTabs);
 
-(function () {
-  'use strict';
-
-  angular
-      .module('material.components.tabs')
-      .directive('mdTabs', MdTabs);
-
-  function MdTabs ($mdTheming) {
-    return {
-      scope: {
-        noPagination:  '=?mdNoPagination',
-        dynamicHeight: '=?mdDynamicHeight',
-        centerTabs:    '=?mdCenterTabs',
-        selectedIndex: '=?mdSelected',
-        stretchTabs:   '@?mdStretchTabs'
-      },
-      transclude: true,
-      template: '\
+function MdTabs ($mdTheming, $mdUtil, $compile) {
+  return {
+    scope: {
+      noPagination:  '=?mdNoPagination',
+      dynamicHeight: '=?mdDynamicHeight',
+      centerTabs:    '=?mdCenterTabs',
+      selectedIndex: '=?mdSelected',
+      stretchTabs:   '@?mdStretchTabs'
+    },
+    template: function (element, attr) {
+      attr.$mdTabsTemplate = element.html();
+      return '\
         <md-tabs-wrapper ng-class="{ \'md-stretch-tabs\': $mdTabsCtrl.shouldStretchTabs() }">\
-          <md-tab-data ng-transclude></md-tab-data>\
+          <md-tab-data></md-tab-data>\
           <md-prev-button\
               tabindex="-1"\
               role="button"\
@@ -110,7 +107,7 @@
               ng-class="{ \'md-disabled\': !$mdTabsCtrl.canPageBack() }"\
               ng-if="$mdTabsCtrl.shouldPaginate()"\
               ng-click="$mdTabsCtrl.previousPage()">\
-            <md-icon md-svg-icon="tabs-arrow"></md-icon>\
+            <md-icon md-svg-icon="md-tabs-arrow"></md-icon>\
           </md-prev-button>\
           <md-next-button\
               tabindex="-1"\
@@ -120,13 +117,16 @@
               ng-class="{ \'md-disabled\': !$mdTabsCtrl.canPageForward() }"\
               ng-if="$mdTabsCtrl.shouldPaginate()"\
               ng-click="$mdTabsCtrl.nextPage()">\
-            <md-icon md-svg-icon="tabs-arrow"></md-icon>\
+            <md-icon md-svg-icon="md-tabs-arrow"></md-icon>\
           </md-next-button>\
           <md-tabs-canvas\
               tabindex="0"\
               aria-activedescendant="tab-item-{{$mdTabsCtrl.tabs[$mdTabsCtrl.focusIndex].id}}"\
               ng-focus="$mdTabsCtrl.redirectFocus()"\
-              ng-class="{ \'md-paginated\': $mdTabsCtrl.shouldPaginate() }"\
+              ng-class="{\
+                  \'md-paginated\': $mdTabsCtrl.shouldPaginate(),\
+                  \'md-center-tabs\': $mdTabsCtrl.shouldCenterTabs()\
+              }"\
               ng-keydown="$mdTabsCtrl.keydown($event)"\
               role="tablist">\
             <md-pagination-wrapper\
@@ -144,13 +144,14 @@
                   ng-click="$mdTabsCtrl.select(tab.getIndex())"\
                   ng-class="{\
                       \'md-active\':    tab.isActive(),\
-                      \'md-focus\':     tab.hasFocus(),\
+                      \'md-focused\':   tab.hasFocus(),\
                       \'md-disabled\':  tab.scope.disabled\
                   }"\
                   ng-disabled="tab.scope.disabled"\
                   md-swipe-left="$mdTabsCtrl.nextPage()"\
                   md-swipe-right="$mdTabsCtrl.previousPage()"\
-                  md-label-template="tab.label"></md-tab-item>\
+                  md-template="tab.label"\
+                  md-scope="tab.parent"></md-tab-item>\
               <md-ink-bar ng-hide="noInkBar"></md-ink-bar>\
             </md-pagination-wrapper>\
             <div class="md-visually-hidden md-dummy-wrapper">\
@@ -164,7 +165,8 @@
                   ng-focus="$mdTabsCtrl.hasFocus = true"\
                   ng-blur="$mdTabsCtrl.hasFocus = false"\
                   ng-repeat="tab in $mdTabsCtrl.tabs"\
-                  md-label-template="tab.label"></md-dummy-tab>\
+                  md-template="tab.label"\
+                  md-scope="tab.parent"></md-dummy-tab>\
             </div>\
           </md-tabs-canvas>\
         </md-tabs-wrapper>\
@@ -173,11 +175,12 @@
               id="tab-content-{{tab.id}}"\
               role="tabpanel"\
               aria-labelledby="tab-item-{{tab.id}}"\
-              md-tab-data="tab"\
               md-swipe-left="$mdTabsCtrl.incrementSelectedIndex(1)"\
               md-swipe-right="$mdTabsCtrl.incrementSelectedIndex(-1)"\
               ng-if="$mdTabsCtrl.hasContent"\
               ng-repeat="(index, tab) in $mdTabsCtrl.tabs" \
+              md-template="tab.template"\
+              md-scope="tab.parent"\
               ng-class="{\
                 \'md-no-transition\': $mdTabsCtrl.lastSelectedIndex == null,\
                 \'md-active\':        tab.isActive(),\
@@ -186,22 +189,28 @@
                 \'md-no-scroll\':     dynamicHeight\
               }"></md-tab-content>\
         </md-tabs-content-wrapper>\
-      ',
-      controller: 'MdTabsController',
-      controllerAs: '$mdTabsCtrl',
-      link: function (scope, element, attr) {
-        angular.forEach(scope.$$isolateBindings, function (binding, key) {
-          if (binding.optional && angular.isUndefined(scope[key])) {
-            scope[key] = attr.hasOwnProperty(attr.$normalize(binding.attrName));
-          }
-        });
-        //-- watch attributes
-        attr.$observe('mdNoBar', function (value) { scope.noInkBar = angular.isDefined(value); });
-        //-- set default value for selectedIndex
-        scope.selectedIndex = angular.isNumber(scope.selectedIndex) ? scope.selectedIndex : 0;
-        //-- apply themes
-        $mdTheming(element);
+      ';
+    },
+    controller: 'MdTabsController',
+    controllerAs: '$mdTabsCtrl',
+    link: function (scope, element, attr) {
+      compileTabData(attr.$mdTabsTemplate);
+      delete attr.$mdTabsTemplate;
+
+      $mdUtil.initOptionalProperties(scope, attr);
+
+      //-- watch attributes
+      attr.$observe('mdNoBar', function (value) { scope.noInkBar = angular.isDefined(value); });
+      //-- set default value for selectedIndex
+      scope.selectedIndex = angular.isNumber(scope.selectedIndex) ? scope.selectedIndex : 0;
+      //-- apply themes
+      $mdTheming(element);
+
+      function compileTabData (template) {
+        var dataElement = element.find('md-tab-data');
+        dataElement.html(template);
+        $compile(dataElement.contents())(scope.$parent);
       }
-    };
-  }
-})();
+    }
+  };
+}
