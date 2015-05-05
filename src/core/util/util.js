@@ -153,15 +153,6 @@ angular.module('material.core')
         return scrollBarsShowing;
       }
 
-<<<<<<< HEAD
-      // CM: problem with md-select.. position: 'fixed',
-      wrapperEl.css({
-        overflow: 'hidden',
-        width: '100%',
-        'padding-top': computedStyle.paddingTop,
-        top: (-1 * heightOffset) + 'px'
-      });
-||||||| merged common ancestors
       wrapperEl.css({
         overflow: 'hidden',
         position: 'fixed',
@@ -169,12 +160,11 @@ angular.module('material.core')
         'padding-top': computedStyle.paddingTop,
         top: (-1 * heightOffset) + 'px'
       });
-=======
+
       function isScrolling(el) {
         if (el instanceof angular.element) el = el[0];
         return el.scrollHeight > el.offsetHeight;
       }
->>>>>>> 61b6240631fe2893d73173f585d687d9bf2480ab
 
       return function restoreScroll() {
         disableTarget.append(virtualScroller[0].childNodes);
