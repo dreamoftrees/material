@@ -150,9 +150,17 @@ angular.module('material.core')
         return scrollBarsShowing;
       }
 
+      // CM: Issue with position
+      //wrapperEl.css({
+      //  overflow: 'hidden',
+      //  position: 'fixed',
+      //  width: '100%',
+      //  'padding-top': computedStyle.paddingTop,
+      //  top: (-1 * heightOffset) + 'px'
+      //});
+
       wrapperEl.css({
         overflow: 'hidden',
-        position: 'fixed',
         width: '100%',
         'padding-top': computedStyle.paddingTop,
         top: (-1 * heightOffset) + 'px'
