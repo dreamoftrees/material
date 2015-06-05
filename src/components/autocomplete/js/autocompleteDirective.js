@@ -32,8 +32,8 @@ angular
  *
  *
  * @param {expression} md-items An expression in the format of `item in items` to iterate over matches for your search.
- * @param {expression} md-selected-item-change An expression to be run each time a new item is selected
- * @param {expression} md-search-text-change An expression to be run each time the search text updates
+ * @param {expression=} md-selected-item-change An expression to be run each time a new item is selected
+ * @param {expression=} md-search-text-change An expression to be run each time the search text updates
  * @param {string=} md-search-text A model to bind the search query text to
  * @param {object=} md-selected-item A model to bind the selected item to
  * @param {string=} md-item-text An expression that will convert your object to a single string.
@@ -45,6 +45,7 @@ angular
  * @param {boolean=} md-autofocus If true, will immediately focus the input element
  * @param {boolean=} md-autoselect If true, the first item will be selected by default
  * @param {string=} md-menu-class This will be applied to the dropdown menu for styling
+ * @param {string=} md-floating-label This will add a floating label to autocomplete and wrap it in `md-input-container`
  *
  * @usage
  * ###Basic Example
@@ -135,14 +136,6 @@ function MdAutocomplete ($mdTheming, $mdUtil) {
             ng-class="{ \'md-whiteframe-z1\': !floatingLabel }"\
             role="listbox">\
           ' + getInputElement() + '\
-          <button\
-              type="button"\
-              tabindex="-1"\
-              ng-if="$mdAutocompleteCtrl.scope.searchText && !isDisabled"\
-              ng-click="$mdAutocompleteCtrl.clear()">\
-            <md-icon md-svg-icon="md-cancel"></md-icon>\
-            <span class="md-visually-hidden">Clear</span>\
-          </button>\
           <md-progress-linear\
               ng-if="$mdAutocompleteCtrl.loading"\
               md-mode="indeterminate"></md-progress-linear>\
@@ -232,7 +225,16 @@ function MdAutocomplete ($mdTheming, $mdUtil) {
                 aria-autocomplete="list"\
                 aria-haspopup="true"\
                 aria-activedescendant=""\
-                aria-expanded="{{!$mdAutocompleteCtrl.hidden}}"/>';
+                aria-expanded="{{!$mdAutocompleteCtrl.hidden}}"/>\
+            <button\
+                type="button"\
+                tabindex="-1"\
+                ng-if="$mdAutocompleteCtrl.scope.searchText && !isDisabled"\
+                ng-click="$mdAutocompleteCtrl.clear()">\
+              <md-icon md-svg-icon="md-close"></md-icon>\
+              <span class="md-visually-hidden">Clear</span>\
+            </button>\
+                ';
         }
       }
     }

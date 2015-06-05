@@ -123,6 +123,11 @@ function MdAutocompleteCtrl ($scope, $element, $mdUtil, $mdConstant, $timeout, $
       if (!hidden && oldHidden) positionDropdown();
     });
     angular.element($window).on('resize', positionDropdown);
+    $scope.$on('$destroy', cleanup);
+  }
+
+  function cleanup () {
+    elements.$.ul.remove();
   }
 
   function gatherElements () {
@@ -286,17 +291,21 @@ function MdAutocompleteCtrl ($scope, $element, $mdUtil, $mdConstant, $timeout, $
   }
 
   function isMinLengthMet () {
-    return $scope.searchText.length >= getMinLength();
+    return $scope.searchText && $scope.searchText.length >= getMinLength();
   }
 
   //-- actions
 
   function select (index) {
     $scope.selectedItem = self.matches[index];
-    $scope.searchText = getDisplayValue($scope.selectedItem) || $scope.searchText;
     self.hidden = true;
     self.index = 0;
     self.matches = [];
+    //-- force form to update state for validation
+    $timeout(function () {
+      elements.$.input.controller('ngModel').$setViewValue(getDisplayValue($scope.selectedItem) || $scope.searchText);
+      self.hidden = true;
+    });
   }
 
   function clearValue () {
@@ -324,8 +333,8 @@ function MdAutocompleteCtrl ($scope, $element, $mdUtil, $mdConstant, $timeout, $
     }
     function handleResults (matches) {
       cache[term] = matches;
-      self.loading = false;
       if (searchText !== $scope.searchText) return; //-- just cache the results if old request
+      self.loading = false;
       promise = null;
       self.matches = matches;
       self.hidden = shouldHide();
@@ -335,15 +344,14 @@ function MdAutocompleteCtrl ($scope, $element, $mdUtil, $mdConstant, $timeout, $
   }
 
   function updateMessages () {
-    self.messages = self.matches.length
-        ? [ getCountMessage(), getCurrentDisplayValue() ]
-        : [];
+    self.messages = [ getCountMessage(), getCurrentDisplayValue() ];
   }
 
   function getCountMessage () {
     if (lastCount === self.matches.length) return '';
     lastCount = self.matches.length;
     switch (self.matches.length) {
+      case 0:  return 'There are no matches available.';
       case 1:  return 'There is 1 match available.';
       default: return 'There are ' + self.matches.length + ' matches available.';
     }

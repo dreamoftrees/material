@@ -304,19 +304,18 @@ code:not(.highlight) {
   /*background-color: #2C80D2 !important;*/
 }
 .menu-toggle-list {
-  max-height: 2000px;
   overflow: hidden;
   position: relative;
   z-index: 1;
   -webkit-transition: 0.75s cubic-bezier(0.35, 0, 0.25, 1);
-  -webkit-transition-property: max-height;
+  -webkit-transition-property: height;
   -moz-transition: 0.75s cubic-bezier(0.35, 0, 0.25, 1);
-  -moz-transition-property: max-height;
+  -moz-transition-property: height;
   transition: 0.75s cubic-bezier(0.35, 0, 0.25, 1);
-  transition-property: max-height;
+  transition-property: height;
 }
 .menu-toggle-list.ng-hide {
-  max-height: 0;
+  height: 0;
 }
 .docs-menu .menu-toggle-list a.md-button {
   display: block;
@@ -750,24 +749,15 @@ ul.methods > li:first-child > *:first-child {
   padding-top: 0;
 }
 
-/* Styles for Windows High Contrast mode */
-@media screen and (-ms-high-contrast: active) {
-  a {
-    text-decoration: underline;
-  }
-  iframe, hljs pre {
-    border: 1px solid #fff;
-  }
-}
-
 
 [ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
   display: none !important;
 }
 
 .version-picker {
-  background: #2C80D2 !important;
+  background: #267ED5 !important;
   border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  margin-bottom: 1px !important;
 }
 .version-picker .menu-toggle-list {
   background: transparent !important;
@@ -806,3 +796,42 @@ docs-demo .doc-demo-content {
 .service-desc > p:last-child {
   margin-bottom: 0;
 }
+
+/* ---------------------
+*  Demo Workarounds
+*
+*  Necessary for component demos that append DOM subtrees outside of the demo app.
+*  Because our docs build prepends CSS classes onto custom demo styles provided for developers,
+*  these styles are needed for the docs website.
+*/
+.autocomplete-custom-template li {
+  border-bottom: 1px solid #ccc;
+  height: auto;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  white-space: normal;
+}
+.autocomplete-custom-template li:last-child {
+  border-bottom-width: 0;
+}
+.autocomplete-custom-template .item-title,
+.autocomplete-custom-template .item-metadata {
+  display: block;
+  line-height: 2;
+}
+.autocomplete-custom-template .item-title md-icon {
+  height: 18px;
+  width: 18px;
+}
+
+
+/* Styles for Windows High Contrast mode */
+@media screen and (-ms-high-contrast: active) {
+  a {
+    text-decoration: underline;
+  }
+  iframe, hljs pre {
+    border: 1px solid #fff;
+  }
+}
+
