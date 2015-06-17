@@ -1,6 +1,6 @@
 {
   "name": "angular-material-source",
-  "version": "0.9.7",
+  "version": "0.10.0",
   "repository": {
     "url": "git://github.com/angular/material.git"
   },
@@ -15,7 +15,7 @@
     "canonical-path": "0.0.2",
     "cli-color": "^1.0.0",
     "colors": "^1.1.0",
-    "conventional-changelog": "0.0.9",
+    "conventional-changelog": "git://github.com/robertmesserle/conventional-changelog.git",
     "dgeni": "^0.4.1",
     "dgeni-packages": "^0.10.3",
     "esprima": "^1.2.2",

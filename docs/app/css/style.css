@@ -243,6 +243,7 @@ code:not(.highlight) {
   color: white;
   cursor: pointer;
   display: block;
+  align-items: inherit;
   line-height: 40px;
   margin: 0;
   max-height: 40px;
@@ -313,9 +314,6 @@ code:not(.highlight) {
   -moz-transition-property: height;
   transition: 0.75s cubic-bezier(0.35, 0, 0.25, 1);
   transition-property: height;
-}
-.menu-toggle-list.ng-hide {
-  height: 0;
 }
 .docs-menu .menu-toggle-list a.md-button {
   display: block;
@@ -638,6 +636,11 @@ ul.buckets li a:focus md-icon {
   margin-left: 22px;
 }
 
+header.api-profile-header > h2 {
+  margin: 0;
+  color: #164371;
+}
+
 .api-params-item {
   min-height: 72px;
 }
@@ -835,3 +838,10 @@ docs-demo .doc-demo-content {
   }
 }
 
+.no-transition {
+  -webkit-transition: none !important;
+  -moz-transition:    none !important;
+  -ms-transition:     none !important;
+  -o-transition:      none !important;
+  transition:         none !important;
+}

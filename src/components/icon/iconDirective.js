@@ -17,8 +17,8 @@ angular.module('material.components.icon', [
  * @restrict E
  *
  * @description
- * The `<md-icon />` directive is an markup element useful for showing an icon based on a font-icon
- * or a SVG. Icons are view-only elements that should not be used directly as buttons; instead nest a `<md-icon />`
+ * The `<md-icon>` directive is an markup element useful for showing an icon based on a font-icon
+ * or a SVG. Icons are view-only elements that should not be used directly as buttons; instead nest a `<md-icon>`
  * inside a `md-button` to add hover and click features.
  *
  * When using SVGs, both external SVGs (via URLs) or sets of SVGs [from icon sets] can be
@@ -31,8 +31,8 @@ angular.module('material.components.icon', [
  * </li>
  * <li> Use either (a) font-icon class names or (b) font ligatures to render the font glyph by using its textual name</li>
  * <li> Use &lt;md-icon md-font-icon="classname" /&gt; or <br/>
- *     use &lt;md-icon md-font-library="library_style_name"&gt; textual_name &lt;/md-icon&gt; or <br/>
- *     use &lt;md-icon md-font-library="library_style_name"&gt; numerical_character_reference &lt;/md-icon&gt;
+ *     use &lt;md-icon md-font-set="font library classname or alias"&gt; textual_name &lt;/md-icon&gt; or <br/>
+ *     use &lt;md-icon md-font-set="font library classname or alias"&gt; numerical_character_reference &lt;/md-icon&gt;
  * </li>
  * </ol>
  *
@@ -58,7 +58,7 @@ angular.module('material.components.icon', [
  *
  * <a href="https://www.google.com/design/icons/#ic_accessibility" target="_blank" style="border-bottom:none;">
  * <img src="https://cloud.githubusercontent.com/assets/210413/7902490/fe8dd14c-0780-11e5-98fb-c821cc6475e6.png"
- *      alt="Material Design Icon-Selector" style="max-width:75%;padding-left:10%">
+ *      aria-label="Material Design Icon-Selector" style="max-width:75%;padding-left:10%">
  * </a>
  *
  * <span class="image_caption">
@@ -66,16 +66,17 @@ angular.module('material.components.icon', [
  *  <a href="https://www.google.com/design/icons/#ic_accessibility" target="_blank">Material Design Icon-Selector</a>.
  * </span>
  *
- * @param {string} md-font-icon String name of CSS icon associated with the font-face will be used
+ * @param {string} md-font-icon Name of CSS icon associated with the font-face will be used
  * to render the icon. Requires the fonts and the named CSS styles to be preloaded.
- * @param {string} md-font-library String name of CSS icon associated with the font-face will be used
- * to render the icon. Requires the fonts and the named CSS styles to be preloaded.
- * @param {string} md-svg-src String URL [or expression ] used to load, cache, and display an external SVG.
- * @param {string} md-svg-icon String name used for lookup of the icon from the internal cache; interpolated strings or
+ * @param {string} md-font-set CSS style name associated with the font library; which will be assigned as
+ * the class for the font-icon ligature. This value may also be an alias that is used to lookup the classname;
+ * internally use `$mdIconProvider.fontSet(<alias>)` to determine the style name.
+ * @param {string} md-svg-src URL [or expression ] used to load, cache, and display an external SVG.
+ * @param {string} md-svg-icon Name used for lookup of the icon from the internal cache; interpolated strings or
  * expressions may also be used. Specific set names can be used with the syntax `<set name>:<icon name>`.<br/><br/>
  * To use icon sets, developers are required to pre-register the sets using the `$mdIconProvider` service.
- * @param {string=} alt Labels icon for accessibility. If an empty string is provided, icon
- * will be hidden from accessibility layer with `aria-hidden="true"`. If there's no alt on the icon
+ * @param {string=} aria-label Labels icon for accessibility. If an empty string is provided, icon
+ * will be hidden from accessibility layer with `aria-hidden="true"`. If there's no aria-label on the icon
  * nor a label on the parent element, a warning will be logged to the console.
  *
  * @usage
@@ -83,11 +84,11 @@ angular.module('material.components.icon', [
  * <hljs lang="html">
  *
  *  <!-- Icon ID; may contain optional icon set prefix; icons must registered using $mdIconProvider -->
- *  <md-icon md-svg-icon="social:android"    alt="android " ></md-icon>
+ *  <md-icon md-svg-icon="social:android"    aria-label="android " ></md-icon>
  *
  *  <!-- Icon urls; may be preloaded in templateCache -->
- *  <md-icon md-svg-src="/android.svg"       alt="android " ></md-icon>
- *  <md-icon md-svg-src="{{ getAndroid() }}" alt="android " ></md-icon>
+ *  <md-icon md-svg-src="/android.svg"       aria-label="android " ></md-icon>
+ *  <md-icon md-svg-src="{{ getAndroid() }}" aria-label="android " ></md-icon>
  *
  * </hljs>
  *
@@ -147,35 +148,8 @@ function mdIconDirective($mdIcon, $mdTheming, $mdAria, $interpolate ) {
       svgSrc  : '@mdSvgSrc'
     },
     restrict: 'E',
-    transclude:true,
-    template: getTemplate,
-    link: postLink
+    link : postLink
   };
-
-  function getTemplate(element, attr) {
-    var isEmptyAttr  = function(key) { return angular.isDefined(attr[key]) ? attr[key].length == 0 : false    },
-        hasAttrValue = function(key) { return attr[key] && attr[key].length;     },
-        attrValue    = function(key) { return hasAttrValue(key) ? attr[key] : '' };
-
-    // If using the deprecated md-font-icon API
-    // If using ligature-based font-icons, transclude the ligature or NRCs
-
-    var tmplFontIcon = '<span class="md-font {{classNames}}" ng-class="fontIcon"></span>';
-    var tmplFontSet  = '<span class="{{classNames}}" ng-transclude></span>';
-
-    var tmpl = hasAttrValue('mdSvgIcon')     ? ''           :
-               hasAttrValue('mdSvgSrc')      ? ''           :
-               isEmptyAttr('mdFontIcon')     ? ''           :
-               hasAttrValue('mdFontIcon')    ? tmplFontIcon : tmplFontSet;
-
-    // If available, lookup the fontSet style and add to the list of classnames
-    // NOTE: Material Icons expects classnames like `.material-icons.md-48` instead of `.material-icons .md-48`
-
-    var names = (tmpl == tmplFontSet) ? $mdIcon.fontSet(attrValue('mdFontSet'))  + ' ' : '';
-        names = (names + attrValue('class')).trim();
-
-    return $interpolate( tmpl )({ classNames: names });
-  }
 
 
   /**
@@ -185,22 +159,27 @@ function mdIconDirective($mdIcon, $mdTheming, $mdAria, $interpolate ) {
   function postLink(scope, element, attr) {
     $mdTheming(element);
 
+    prepareForFontIcon();
+
     // If using a font-icon, then the textual name of the icon itself
     // provides the aria-label.
 
-    var ariaLabel = attr.alt || scope.fontIcon || scope.svgIcon || element.text();
+    var label = attr.alt || scope.fontIcon || scope.svgIcon || element.text();
     var attrName = attr.$normalize(attr.$attr.mdSvgIcon || attr.$attr.mdSvgSrc || '');
 
-    if (attr.alt != '' && !parentsHaveText() ) {
+    if ( !attr['aria-label'] ) {
 
-      $mdAria.expect(element, 'aria-label', ariaLabel);
-      $mdAria.expect(element, 'role', 'img');
+      if (label != '' && !parentsHaveText() ) {
 
-    } else if ( !element.text() ) {
-      // If not a font-icon with ligature, then
-      // hide from the accessibility layer.
+        $mdAria.expect(element, 'aria-label', label);
+        $mdAria.expect(element, 'role', 'img');
 
-      $mdAria.expect(element, 'aria-hidden', 'true');
+      } else if ( !element.text() ) {
+        // If not a font-icon with ligature, then
+        // hide from the accessibility layer.
+
+        $mdAria.expect(element, 'aria-hidden', 'true');
+      }
     }
 
     if (attrName) {
@@ -216,6 +195,7 @@ function mdIconDirective($mdIcon, $mdTheming, $mdAria, $interpolate ) {
 
       });
     }
+
     function parentsHaveText() {
       var parent = element.parent();
       if (parent.attr('aria-label') || parent.text()) {
@@ -225,6 +205,18 @@ function mdIconDirective($mdIcon, $mdTheming, $mdAria, $interpolate ) {
         return true;
       }
       return false;
+    }
+
+    function prepareForFontIcon () {
+      if (!scope.svgIcon && !scope.svgSrc) {
+        if (scope.fontIcon) {
+          element.addClass('md-font');
+          element.addClass(scope.fontIcon);
+        } else {
+          element.addClass($mdIcon.fontSet(scope.fontSet));
+        }
+      }
+
     }
   }
 }
