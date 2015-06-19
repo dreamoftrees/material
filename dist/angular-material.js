@@ -10,7 +10,7 @@
 (function(){
 "use strict";
 
-angular.module('ngMaterial', ["ng","ngAnimate","ngAria","material.core","material.core.gestures","material.core.theming.palette","material.core.theming","material.components.autocomplete","material.components.backdrop","material.components.bottomSheet","material.components.button","material.components.card","material.components.checkbox","material.components.chips","material.components.content","material.components.dialog","material.components.divider","material.components.fabActions","material.components.fabSpeedDial","material.components.fabToolbar","material.components.fabTrigger","material.components.gridList","material.components.icon","material.components.input","material.components.list","material.components.menu","material.components.progressCircular","material.components.progressLinear","material.components.radioButton","material.components.select","material.components.sidenav","material.components.slider","material.components.sticky","material.components.subheader","material.components.swipe","material.components.switch","material.components.tabs","material.components.toast","material.components.toolbar","material.components.tooltip","material.components.whiteframe"]);
+angular.module('ngMaterial', ["ng","ngAnimate","ngAria","material.core","material.core.gestures","material.core.theming.palette","material.core.theming","material.components.autocomplete","material.components.backdrop","material.components.bottomSheet","material.components.button","material.components.card","material.components.checkbox","material.components.chips","material.components.content","material.components.dialog","material.components.divider","material.components.fabActions","material.components.fabSpeedDial","material.components.fabToolbar","material.components.fabTrigger","material.components.gridList","material.components.icon","material.components.input","material.components.list","material.components.menu","material.components.progressCircular","material.components.progressLinear","material.components.radioButton","material.components.select","material.components.sidenav","material.components.slider","material.components.sticky","material.components.subheader","material.components.swipe","material.components.switch","material.components.tabs","material.components.toast","material.components.toolbar","material.components.tooltip","material.components.virtualRepeater","material.components.whiteframe"]);
 })();
 (function(){
 "use strict";
@@ -507,349 +507,351 @@ mdMediaFactory.$inject = ["$mdConstant", "$rootScope", "$window"];
 var nextUniqueId = 0;
 
 angular.module('material.core')
-.factory('$mdUtil', ["$cacheFactory", "$document", "$timeout", "$q", "$window", "$mdConstant", function($cacheFactory, $document, $timeout, $q, $window, $mdConstant) {
-  var Util;
+  .factory('$mdUtil', ["$cacheFactory", "$document", "$timeout", "$q", "$window", "$mdConstant", function ($cacheFactory, $document, $timeout, $q, $window, $mdConstant) {
+    var Util;
 
-  function getNode(el) {
-    return el[0] || el;
-  }
+    function getNode(el) {
+      return el[0] || el;
+    }
 
-  return Util = {
-    now: window.performance ?
-      angular.bind(window.performance, window.performance.now) :
-      Date.now,
+    return Util = {
+      now: window.performance ?
+        angular.bind(window.performance, window.performance.now) :
+        Date.now,
 
-    clientRect: function(element, offsetParent, isOffsetRect) {
-      var node = getNode(element);
-      offsetParent = getNode(offsetParent || node.offsetParent || document.body);
-      var nodeRect = node.getBoundingClientRect();
+      clientRect: function (element, offsetParent, isOffsetRect) {
+        var node = getNode(element);
+        offsetParent = getNode(offsetParent || node.offsetParent || document.body);
+        var nodeRect = node.getBoundingClientRect();
 
-      // The user can ask for an offsetRect: a rect relative to the offsetParent,
-      // or a clientRect: a rect relative to the page
-      var offsetRect = isOffsetRect ?
-        offsetParent.getBoundingClientRect() :
-        { left: 0, top: 0, width: 0, height: 0 };
-      return {
-        left: nodeRect.left - offsetRect.left,
-        top: nodeRect.top - offsetRect.top,
-        width: nodeRect.width,
-        height: nodeRect.height
-      };
-    },
-    offsetRect: function(element, offsetParent) {
-      return Util.clientRect(element, offsetParent, true);
-    },
+        // The user can ask for an offsetRect: a rect relative to the offsetParent,
+        // or a clientRect: a rect relative to the page
+        var offsetRect = isOffsetRect ?
+          offsetParent.getBoundingClientRect() :
+        {left: 0, top: 0, width: 0, height: 0};
+        return {
+          left: nodeRect.left - offsetRect.left,
+          top: nodeRect.top - offsetRect.top,
+          width: nodeRect.width,
+          height: nodeRect.height
+        };
+      },
+      offsetRect: function (element, offsetParent) {
+        return Util.clientRect(element, offsetParent, true);
+      },
 
-    // Annoying method to copy nodes to an array, thanks to IE
-    nodesToArray: function (nodes) {
-      var results = [];
-      for (var i = 0; i < nodes.length; ++i) {
-        results.push(nodes.item(i));
-      }
-      return results;
-    },
+      // Annoying method to copy nodes to an array, thanks to IE
+      nodesToArray: function (nodes) {
+        var results = [];
+        for (var i = 0; i < nodes.length; ++i) {
+          results.push(nodes.item(i));
+        }
+        return results;
+      },
 
-    // Disables scroll around the passed element.
-    disableScrollAround: function(element) {
-      if (Util.disableScrollAround._enableScrolling) return Util.disableScrollAround._enableScrolling;
-      element = angular.element(element);
-      var body = $document[0].body,
+      // Disables scroll around the passed element.
+      disableScrollAround: function (element) {
+        if (Util.disableScrollAround._enableScrolling) return Util.disableScrollAround._enableScrolling;
+        element = angular.element(element);
+        var body = $document[0].body,
           restoreBody = disableBodyScroll(),
           restoreElement = disableElementScroll();
 
-      return Util.disableScrollAround._enableScrolling = function () {
-        restoreBody();
-        restoreElement();
-        delete Util.disableScrollAround._enableScrolling;
-      };
-
-      // Creates a virtual scrolling mask to absorb touchmove, keyboard, scrollbar clicking, and wheel events
-      function disableElementScroll() {
-        var zIndex = $window.getComputedStyle(element[0]).zIndex - 1;
-        if (isNaN(zIndex)) zIndex = 99;
-        var scrollMask = angular.element(
-            '<div class="md-scroll-mask" style="z-index: ' + zIndex + '">' +
-            '  <div class="md-scroll-mask-bar"></div>' +
-            '</div>');
-        body.appendChild(scrollMask[0]);
-
-        scrollMask.on('wheel', preventDefault);
-        scrollMask.on('touchmove', preventDefault);
-        $document.on('keydown', disableKeyNav);
-
-        return function restoreScroll () {
-          scrollMask.off('wheel');
-          scrollMask.off('touchmove');
-          scrollMask[0].parentNode.removeChild(scrollMask[0]);
-          $document.off('keydown', disableKeyNav);
+        return Util.disableScrollAround._enableScrolling = function () {
+          restoreBody();
+          restoreElement();
           delete Util.disableScrollAround._enableScrolling;
         };
 
-        // Prevent keypresses from elements inside the body
-        // used to stop the keypresses that could cause the page to scroll
-        // (arrow keys, spacebar, tab, etc).
-        function disableKeyNav(e) {
-          //-- temporarily removed this logic, will possibly re-add at a later date
-          return;
-          if (!element[0].contains(e.target)) {
+        // Creates a virtual scrolling mask to absorb touchmove, keyboard, scrollbar clicking, and wheel events
+        function disableElementScroll() {
+          var zIndex = $window.getComputedStyle(element[0]).zIndex - 1;
+          if (isNaN(zIndex)) zIndex = 99;
+          var scrollMask = angular.element(
+            '<div class="md-scroll-mask" style="z-index: ' + zIndex + '">' +
+            '  <div class="md-scroll-mask-bar"></div>' +
+            '</div>');
+          body.appendChild(scrollMask[0]);
+
+          scrollMask.on('wheel', preventDefault);
+          scrollMask.on('touchmove', preventDefault);
+          $document.on('keydown', disableKeyNav);
+
+          return function restoreScroll() {
+            scrollMask.off('wheel');
+            scrollMask.off('touchmove');
+            scrollMask[0].parentNode.removeChild(scrollMask[0]);
+            $document.off('keydown', disableKeyNav);
+            delete Util.disableScrollAround._enableScrolling;
+          };
+
+          // Prevent keypresses from elements inside the body
+          // used to stop the keypresses that could cause the page to scroll
+          // (arrow keys, spacebar, tab, etc).
+          function disableKeyNav(e) {
+            //-- temporarily removed this logic, will possibly re-add at a later date
+            return;
+            if (!element[0].contains(e.target)) {
+              e.preventDefault();
+              e.stopImmediatePropagation();
+            }
+          }
+
+          function preventDefault(e) {
             e.preventDefault();
-            e.stopImmediatePropagation();
           }
         }
 
-        function preventDefault(e) {
-          e.preventDefault();
+        // Converts the body to a position fixed block and translate it to the proper scroll
+        // position
+        function disableBodyScroll() {
+          var restoreStyle = body.getAttribute('style') || '';
+          var scrollOffset = body.scrollTop + body.parentElement.scrollTop;
+          var clientWidth = body.clientWidth;
+
+          applyStyles(body, {
+            position: 'fixed',
+            width: '100%',
+            overflowY: 'scroll',
+            top: -scrollOffset + 'px'
+          });
+
+          if (body.clientWidth < clientWidth) applyStyles(body, {overflow: 'hidden'});
+
+          return function restoreScroll() {
+            body.setAttribute('style', restoreStyle);
+            body.scrollTop = scrollOffset;
+          };
         }
-      }
 
-      // Converts the body to a position fixed block and translate it to the proper scroll
-      // position
-      function disableBodyScroll() {
-        var restoreStyle = body.getAttribute('style') || '';
-        var scrollOffset = body.scrollTop + body.parentElement.scrollTop;
-        var clientWidth  = body.clientWidth;
+        function applyStyles(el, styles) {
+          for (var key in styles) {
+            el.style[key] = styles[key];
+          }
+        }
+      },
+      enableScrolling: function () {
+        var method = this.disableScrollAround._enableScrolling;
+        method && method();
+      },
+      floatingScrollbars: function () {
+        if (this.floatingScrollbars.cached === undefined) {
+          var tempNode = angular.element('<div style="width: 100%; z-index: -1; position: absolute; height: 35px; overflow-y: scroll"><div style="height: 60;"></div></div>');
+          $document[0].body.appendChild(tempNode[0]);
+          this.floatingScrollbars.cached = (tempNode[0].offsetWidth == tempNode[0].childNodes[0].offsetWidth);
+          tempNode.remove();
+        }
+        return this.floatingScrollbars.cached;
+      },
 
-        applyStyles(body, {
-          position: 'fixed',
-          width: '100%',
-          overflowY: 'scroll',
-          top: -scrollOffset + 'px'
-        });
+      // Mobile safari only allows you to set focus in click event listeners...
+      forceFocus: function (element) {
+        var node = element[0] || element;
 
-        if (body.clientWidth < clientWidth) applyStyles(body, { overflow: 'hidden' });
+        document.addEventListener('click', function focusOnClick(ev) {
+          if (ev.target === node && ev.$focus) {
+            node.focus();
+            ev.stopImmediatePropagation();
+            ev.preventDefault();
+            node.removeEventListener('click', focusOnClick);
+          }
+        }, true);
 
-        return function restoreScroll() {
-          body.setAttribute('style', restoreStyle);
-          body.scrollTop = scrollOffset;
+        var newEvent = document.createEvent('MouseEvents');
+        newEvent.initMouseEvent('click', false, true, window, {}, 0, 0, 0, 0,
+          false, false, false, false, 0, null);
+        newEvent.$material = true;
+        newEvent.$focus = true;
+        node.dispatchEvent(newEvent);
+      },
+
+      transitionEndPromise: function (element, opts) {
+        opts = opts || {};
+        var deferred = $q.defer();
+        element.on($mdConstant.CSS.TRANSITIONEND, finished);
+        function finished(ev) {
+          // Make sure this transitionend didn't bubble up from a child
+          if (!ev || ev.target === element[0]) {
+            element.off($mdConstant.CSS.TRANSITIONEND, finished);
+            deferred.resolve();
+          }
+        }
+
+        if (opts.timeout) $timeout(finished, opts.timeout);
+        return deferred.promise;
+      },
+
+      fakeNgModel: function () {
+        return {
+          $fake: true,
+          $setTouched: angular.noop,
+          $setViewValue: function (value) {
+            this.$viewValue = value;
+            this.$render(value);
+            this.$viewChangeListeners.forEach(function (cb) {
+              cb();
+            });
+          },
+          $isEmpty: function (value) {
+            return ('' + value).length === 0;
+          },
+          $parsers: [],
+          $formatters: [],
+          $viewChangeListeners: [],
+          $render: angular.noop
         };
+      },
+
+      // Returns a function, that, as long as it continues to be invoked, will not
+      // be triggered. The function will be called after it stops being called for
+      // N milliseconds.
+      // @param wait Integer value of msecs to delay (since last debounce reset); default value 10 msecs
+      // @param invokeApply should the $timeout trigger $digest() dirty checking
+      debounce: function (func, wait, scope, invokeApply) {
+        var timer;
+
+        return function debounced() {
+          var context = scope,
+            args = Array.prototype.slice.call(arguments);
+
+          $timeout.cancel(timer);
+          timer = $timeout(function () {
+
+            timer = undefined;
+            func.apply(context, args);
+
+          }, wait || 10, invokeApply);
+        };
+      },
+
+      // Returns a function that can only be triggered every `delay` milliseconds.
+      // In other words, the function will not be called unless it has been more
+      // than `delay` milliseconds since the last call.
+      throttle: function throttle(func, delay) {
+        var recent;
+        return function throttled() {
+          var context = this;
+          var args = arguments;
+          var now = Util.now();
+
+          if (!recent || (now - recent > delay)) {
+            func.apply(context, args);
+            recent = now;
+          }
+        };
+      },
+
+      /**
+       * Measures the number of milliseconds taken to run the provided callback
+       * function. Uses a high-precision timer if available.
+       */
+      time: function time(cb) {
+        var start = Util.now();
+        cb();
+        return Util.now() - start;
+      },
+
+      /**
+       * Get a unique ID.
+       *
+       * @returns {string} an unique numeric string
+       */
+      nextUid: function () {
+        return '' + nextUniqueId++;
+      },
+
+      // Stop watchers and events from firing on a scope without destroying it,
+      // by disconnecting it from its parent and its siblings' linked lists.
+      disconnectScope: function disconnectScope(scope) {
+        if (!scope) return;
+
+        // we can't destroy the root scope or a scope that has been already destroyed
+        if (scope.$root === scope) return;
+        if (scope.$$destroyed) return;
+
+        var parent = scope.$parent;
+        scope.$$disconnected = true;
+
+        // See Scope.$destroy
+        if (parent.$$childHead === scope) parent.$$childHead = scope.$$nextSibling;
+        if (parent.$$childTail === scope) parent.$$childTail = scope.$$prevSibling;
+        if (scope.$$prevSibling) scope.$$prevSibling.$$nextSibling = scope.$$nextSibling;
+        if (scope.$$nextSibling) scope.$$nextSibling.$$prevSibling = scope.$$prevSibling;
+
+        scope.$$nextSibling = scope.$$prevSibling = null;
+
+      },
+
+      // Undo the effects of disconnectScope above.
+      reconnectScope: function reconnectScope(scope) {
+        if (!scope) return;
+
+        // we can't disconnect the root node or scope already disconnected
+        if (scope.$root === scope) return;
+        if (!scope.$$disconnected) return;
+
+        var child = scope;
+
+        var parent = child.$parent;
+        child.$$disconnected = false;
+        // See Scope.$new for this logic...
+        child.$$prevSibling = parent.$$childTail;
+        if (parent.$$childHead) {
+          parent.$$childTail.$$nextSibling = child;
+          parent.$$childTail = child;
+        } else {
+          parent.$$childHead = parent.$$childTail = child;
+        }
+      },
+
+      /*
+       * getClosest replicates jQuery.closest() to walk up the DOM tree until it finds a matching nodeName
+       *
+       * @param el Element to start walking the DOM from
+       * @param tagName Tag name to find closest to el, such as 'form'
+       */
+      getClosest: function getClosest(el, tagName, onlyParent) {
+        if (el instanceof angular.element) el = el[0];
+        tagName = tagName.toUpperCase();
+        if (onlyParent) el = el.parentNode;
+        if (!el) return null;
+        do {
+          if (el.nodeName === tagName) {
+            return el;
+          }
+        } while (el = el.parentNode);
+        return null;
+      },
+
+      /**
+       * Functional equivalent for $element.filter(‘md-bottom-sheet’)
+       * useful with interimElements where the element and its container are important...
+       */
+      extractElementByName: function (element, nodeName) {
+        for (var i = 0, len = element.length; i < len; i++) {
+          if (element[i].nodeName.toLowerCase() === nodeName) {
+            return angular.element(element[i]);
+          }
+        }
+        return element;
+      },
+
+      /**
+       * Give optional properties with no value a boolean true if attr provided or false otherwise
+       */
+      initOptionalProperties: function (scope, attr, defaults) {
+        defaults = defaults || {};
+        angular.forEach(scope.$$isolateBindings, function (binding, key) {
+          if (binding.optional && angular.isUndefined(scope[key])) {
+            var attrIsDefined = angular.isDefined(attr[binding.attrName]);
+            scope[key] = angular.isDefined(defaults[key]) ? defaults[key] : attrIsDefined;
+          }
+        });
       }
 
-      function applyStyles (el, styles) {
-        for (var key in styles) {
-          el.style[key] = styles[key];
-        }
-      }
-    },
-    enableScrolling: function () {
-      var method = this.disableScrollAround._enableScrolling;
-      method && method();
-    },
-    floatingScrollbars: function() {
-      if (this.floatingScrollbars.cached === undefined) {
-        var tempNode = angular.element('<div style="width: 100%; z-index: -1; position: absolute; height: 35px; overflow-y: scroll"><div style="height: 60;"></div></div>');
-        $document[0].body.appendChild(tempNode[0]);
-        this.floatingScrollbars.cached = (tempNode[0].offsetWidth == tempNode[0].childNodes[0].offsetWidth);
-        tempNode.remove();
-      }
-      return this.floatingScrollbars.cached;
-    },
+    };
 
-    // Mobile safari only allows you to set focus in click event listeners...
-    forceFocus: function(element) {
-      var node = element[0] || element;
-
-      document.addEventListener('click', function focusOnClick(ev) {
-        if (ev.target === node && ev.$focus) {
-          node.focus();
-          ev.stopImmediatePropagation();
-          ev.preventDefault();
-          node.removeEventListener('click', focusOnClick);
-        }
-      }, true);
-
-      var newEvent = document.createEvent('MouseEvents');
-      newEvent.initMouseEvent('click', false, true, window, {}, 0, 0, 0, 0,
-                       false, false, false, false, 0, null);
-      newEvent.$material = true;
-      newEvent.$focus = true;
-      node.dispatchEvent(newEvent);
-    },
-
-    transitionEndPromise: function(element, opts) {
-      opts = opts || {};
-      var deferred = $q.defer();
-      element.on($mdConstant.CSS.TRANSITIONEND, finished);
-      function finished(ev) {
-        // Make sure this transitionend didn't bubble up from a child
-        if (!ev || ev.target === element[0]) {
-          element.off($mdConstant.CSS.TRANSITIONEND, finished);
-          deferred.resolve();
-        }
-      }
-      if (opts.timeout) $timeout(finished, opts.timeout);
-      return deferred.promise;
-    },
-
-    fakeNgModel: function() {
-      return {
-        $fake: true,
-        $setTouched: angular.noop,
-        $setViewValue: function(value) {
-          this.$viewValue = value;
-          this.$render(value);
-          this.$viewChangeListeners.forEach(function(cb) { cb(); });
-        },
-        $isEmpty: function(value) {
-          return ('' + value).length === 0;
-        },
-        $parsers: [],
-        $formatters: [],
-        $viewChangeListeners: [],
-        $render: angular.noop
-      };
-    },
-
-    // Returns a function, that, as long as it continues to be invoked, will not
-    // be triggered. The function will be called after it stops being called for
-    // N milliseconds.
-    // @param wait Integer value of msecs to delay (since last debounce reset); default value 10 msecs
-    // @param invokeApply should the $timeout trigger $digest() dirty checking
-    debounce: function (func, wait, scope, invokeApply) {
-      var timer;
-
-      return function debounced() {
-        var context = scope,
-          args = Array.prototype.slice.call(arguments);
-
-        $timeout.cancel(timer);
-        timer = $timeout(function() {
-
-          timer = undefined;
-          func.apply(context, args);
-
-        }, wait || 10, invokeApply );
-      };
-    },
-
-    // Returns a function that can only be triggered every `delay` milliseconds.
-    // In other words, the function will not be called unless it has been more
-    // than `delay` milliseconds since the last call.
-    throttle: function throttle(func, delay) {
-      var recent;
-      return function throttled() {
-        var context = this;
-        var args = arguments;
-        var now = Util.now();
-
-        if (!recent || (now - recent > delay)) {
-          func.apply(context, args);
-          recent = now;
-        }
-      };
-    },
-
-    /**
-     * Measures the number of milliseconds taken to run the provided callback
-     * function. Uses a high-precision timer if available.
-     */
-    time: function time(cb) {
-      var start = Util.now();
-      cb();
-      return Util.now() - start;
-    },
-
-    /**
-     * Get a unique ID.
-     *
-     * @returns {string} an unique numeric string
-     */
-    nextUid: function() {
-      return '' + nextUniqueId++;
-    },
-
-    // Stop watchers and events from firing on a scope without destroying it,
-    // by disconnecting it from its parent and its siblings' linked lists.
-    disconnectScope: function disconnectScope(scope) {
-      if (!scope) return;
-
-      // we can't destroy the root scope or a scope that has been already destroyed
-      if (scope.$root === scope) return;
-      if (scope.$$destroyed ) return;
-
-      var parent = scope.$parent;
-      scope.$$disconnected = true;
-
-      // See Scope.$destroy
-      if (parent.$$childHead === scope) parent.$$childHead = scope.$$nextSibling;
-      if (parent.$$childTail === scope) parent.$$childTail = scope.$$prevSibling;
-      if (scope.$$prevSibling) scope.$$prevSibling.$$nextSibling = scope.$$nextSibling;
-      if (scope.$$nextSibling) scope.$$nextSibling.$$prevSibling = scope.$$prevSibling;
-
-      scope.$$nextSibling = scope.$$prevSibling = null;
-
-    },
-
-    // Undo the effects of disconnectScope above.
-    reconnectScope: function reconnectScope(scope) {
-      if (!scope) return;
-
-      // we can't disconnect the root node or scope already disconnected
-      if (scope.$root === scope) return;
-      if (!scope.$$disconnected) return;
-
-      var child = scope;
-
-      var parent = child.$parent;
-      child.$$disconnected = false;
-      // See Scope.$new for this logic...
-      child.$$prevSibling = parent.$$childTail;
-      if (parent.$$childHead) {
-        parent.$$childTail.$$nextSibling = child;
-        parent.$$childTail = child;
-      } else {
-        parent.$$childHead = parent.$$childTail = child;
-      }
-    },
-
-    /*
-     * getClosest replicates jQuery.closest() to walk up the DOM tree until it finds a matching nodeName
-     *
-     * @param el Element to start walking the DOM from
-     * @param tagName Tag name to find closest to el, such as 'form'
-     */
-    getClosest: function getClosest(el, tagName, onlyParent) {
-      if (el instanceof angular.element) el = el[0];
-      tagName = tagName.toUpperCase();
-      if (onlyParent) el = el.parentNode;
-      if (!el) return null;
-      do {
-        if (el.nodeName === tagName) {
-          return el;
-        }
-      } while (el = el.parentNode);
-      return null;
-    },
-
-    /**
-     * Functional equivalent for $element.filter(‘md-bottom-sheet’)
-     * useful with interimElements where the element and its container are important...
-     */
-    extractElementByName: function (element, nodeName) {
-      for (var i = 0, len = element.length; i < len; i++) {
-        if (element[i].nodeName.toLowerCase() === nodeName){
-          return angular.element(element[i]);
-        }
-      }
-      return element;
-    },
-
-    /**
-     * Give optional properties with no value a boolean true by default
-     */
-    initOptionalProperties: function (scope, attr, defaults ) {
-       defaults = defaults || { };
-       angular.forEach(scope.$$isolateBindings, function (binding, key) {
-         if (binding.optional && angular.isUndefined(scope[key])) {
-           var hasKey = attr.hasOwnProperty(attr.$normalize(binding.attrName));
-
-           scope[key] = angular.isDefined(defaults[key]) ? defaults[key] : hasKey;
-         }
-       });
-    }
-
-  };
-
-}]);
+  }]);
 
 /*
  * Since removing jQuery from the demos, some code that uses `element.focus()` is broken.
@@ -859,18 +861,18 @@ angular.module('material.core')
  * TODO(ajoslin): This should be added in a better place later.
  */
 
-angular.element.prototype.focus = angular.element.prototype.focus || function() {
-  if (this.length) {
-    this[0].focus();
-  }
-  return this;
-};
-angular.element.prototype.blur = angular.element.prototype.blur || function() {
-  if (this.length) {
-    this[0].blur();
-  }
-  return this;
-};
+angular.element.prototype.focus = angular.element.prototype.focus || function () {
+    if (this.length) {
+      this[0].focus();
+    }
+    return this;
+  };
+angular.element.prototype.blur = angular.element.prototype.blur || function () {
+    if (this.length) {
+      this[0].blur();
+    }
+    return this;
+  };
 
 })();
 (function(){
@@ -6782,11 +6784,12 @@ angular.module('material.components.icon', [
  * When using Material Font Icons with ligatures:
  * <hljs lang="html">
  *  <!-- For Material Design Icons -->
- *  <!-- The class '.material-icons' is auto-added. -->
+ *  <!-- The class '.material-icons' is auto-added if a style has NOT been specified -->
  *  <md-icon> face </md-icon>
- *  <md-icon class="md-light md-48"> face </md-icon>
  *  <md-icon md-font-set="material-icons"> face </md-icon>
  *  <md-icon> #xE87C; </md-icon>
+ *  <!-- The class '.material-icons' must be manually added if other styles are also specified-->
+ *  <md-icon class="material-icons md-light md-48"> face </md-icon>
  * </hljs>
  *
  * When using other Font-Icon libraries:
@@ -6874,11 +6877,22 @@ function mdIconDirective($mdIcon, $mdTheming, $mdAria, $interpolate ) {
 
     function prepareForFontIcon () {
       if (!scope.svgIcon && !scope.svgSrc) {
+
         if (scope.fontIcon) {
           element.addClass('md-font');
           element.addClass(scope.fontIcon);
-        } else {
+        }
+
+        if (scope.fontSet) {
           element.addClass($mdIcon.fontSet(scope.fontSet));
+        }
+
+        // For Material Design font icons, the class '.material-icons'
+        // is auto-added IF a style has not been specified
+
+        if (!scope.fontIcon && !scope.fontSet && !angular.isDefined(attr.class)) {
+
+            element.addClass('material-icons');
         }
       }
 
@@ -8103,8 +8117,9 @@ angular.module('material.components.menu', [
  *
  * Every `md-menu` must specify exactly two child elements. The first element is what is
  * left in the DOM and is used to open the menu. This element is called the trigger element.
- * The trigger element's scope has access to `$mdOpenMenu()`
- * which it may call to open the menu.
+ * The trigger element's scope has access to `$mdOpenMenu($event)`
+ * which it may call to open the menu. By passing $event as argument, the
+ * corresponding event is stopped from propagating up the DOM-tree.
  *
  * The second element is the `md-menu-content` element which represents the
  * contents of the menu when it is open. Typically this will contain `md-menu-item`s,
@@ -8113,7 +8128,7 @@ angular.module('material.components.menu', [
  * <hljs lang="html">
  * <md-menu>
  *  <!-- Trigger element is a md-button with an icon -->
- *  <md-button ng-click="$mdOpenMenu()" class="md-icon-button" aria-label="Open sample menu">
+ *  <md-button ng-click="$mdOpenMenu($event)" class="md-icon-button" aria-label="Open sample menu">
  *    <md-icon md-svg-icon="call:phone"></md-icon>
  *  </md-button>
  *  <md-menu-content>
@@ -8155,7 +8170,7 @@ angular.module('material.components.menu', [
  *
  * <hljs lang="html">
  * <md-menu>
- *  <md-button ng-click="$mdOpenMenu()" class="md-icon-button" aria-label="Open some menu">
+ *  <md-button ng-click="$mdOpenMenu($event)" class="md-icon-button" aria-label="Open some menu">
  *    <md-icon md-menu-origin md-svg-icon="call:phone"></md-icon>
  *  </md-button>
  *  <md-menu-content>
@@ -8198,7 +8213,7 @@ angular.module('material.components.menu', [
  * @usage
  * <hljs lang="html">
  * <md-menu>
- *  <md-button ng-click="$mdOpenMenu()" class="md-icon-button">
+ *  <md-button ng-click="$mdOpenMenu($event)" class="md-icon-button">
  *    <md-icon md-svg-icon="call:phone"></md-icon>
  *  </md-button>
  *  <md-menu-content>
@@ -8272,7 +8287,9 @@ function MenuController($mdMenu, $attrs, $element, $scope) {
   };
 
   // Uses the $mdMenu interim element service to open the menu contents
-  this.open = function openMenu() {
+  this.open = function openMenu(ev) {
+    ev && ev.stopPropagation();
+
     ctrl.isOpen = true;
     triggerElement.setAttribute('aria-expanded', 'true');
     $mdMenu.show({
@@ -11831,7 +11848,7 @@ function MdToastDirective() {
  * - $mdToastPreset#action(string) - adds an action button, which resolves the promise returned from `show()` if clicked.
  * - $mdToastPreset#highlightAction(boolean) - sets action button to be highlighted
  * - $mdToastPreset#capsule(boolean) - adds 'md-capsule' class to the toast (curved corners)
- * - $mdToastPreset#theme(boolean) - sets the theme on the toast to theme (default is `$mdThemingProvider`'s default theme)
+ * - $mdToastPreset#theme(string) - sets the theme on the toast to theme (default is `$mdThemingProvider`'s default theme)
  */
 
 /**
@@ -12431,6 +12448,536 @@ function MdTooltipDirective($timeout, $window, $$rAF, $document, $mdUtil, $mdThe
 
 }
 MdTooltipDirective.$inject = ["$timeout", "$window", "$$rAF", "$document", "$mdUtil", "$mdTheming", "$rootElement", "$animate", "$q"];
+
+})();
+(function(){
+"use strict";
+
+/**
+ * @ngdoc module
+ * @name material.components.virtualRepeater
+ */
+angular.module('material.components.virtualRepeater', [
+  'material.core'
+])
+.directive('mdVirtualRepeatContainer', VirtualRepeatContainerDirective)
+.directive('mdVirtualRepeat', VirtualRepeatDirective);
+
+
+/**
+ * @ngdoc directive
+ * @name mdVirtualRepeatContainer
+ * @module material.components.virtualRepeat
+ * @restrict E
+ * @description
+ * `md-virtual-repeat-container` provides the scroll container for md-virtual-repeat.
+ *
+ * Virtual repeat is a limited substitute for ng-repeat that renders only
+ * enough dom nodes to fill the container and recycling them as the user scrolls.
+ *
+ * @usage
+ * <hljs lang="html">
+ * <md-virtual-repeat-container></md-virtual-repeat-container>
+ *
+ * <md-virtual-repeat-container md-orient-horizontal>
+ *   <div md-virtual-repeat="i in items" md-item-size="20">Hello {{i}}!</div>
+ * </md-virtual-repeat-container>
+ * </hljs>
+ *
+ * @param {boolean=} md-orient-horizontal Whether the container should scroll horizontally
+ *     (defaults to scrolling vertically).
+ */
+function VirtualRepeatContainerDirective() {
+  return {
+    controller: VirtualRepeatContainerController,
+    restrict: 'E',
+    template: virtualRepeatContainerTemplate,
+    compile: function virtualRepeatContainerCompile($element, $attrs) {
+      $element
+          .addClass('md-virtual-repeat-container')
+          .addClass($attrs.hasOwnProperty('mdOrientHorizontal')
+              ? 'md-orient-horizontal'
+              : 'md-orient-vertical');
+    }
+  };
+}
+
+
+function virtualRepeatContainerTemplate($element, $attrs) {
+  return '<div class="md-virtual-repeat-scroller">' +
+    '<div class="md-virtual-repeat-sizer"></div>' +
+    '<div class="md-virtual-repeat-offsetter">' +
+      $element[0].innerHTML +
+    '</div></div>';
+}
+
+
+/** @ngInject */
+function VirtualRepeatContainerController($$rAF, $scope, $element, $attrs) {
+  this.$scope = $scope;
+  this.$element = $element;
+  this.$attrs = $attrs;
+
+  /** @type {number} The width or height of the container */
+  this.size = 0;
+  /** @type {number} The scroll width or height of the scroller */
+  this.scrollSize = 0;
+  /** @type {number} The scrollLeft or scrollTop of the scroller */
+  this.scrollOffset = 0;
+  /** @type {boolean} Whether the scroller is oriented horizontally */
+  this.horizontal = this.$attrs.hasOwnProperty('mdOrientHorizontal');
+  /** @type {!VirtualRepeatController} The repeater inside of this container */
+  this.repeater = null;
+
+  this.scroller = $element[0].getElementsByClassName('md-virtual-repeat-scroller')[0];
+  this.sizer = this.scroller.getElementsByClassName('md-virtual-repeat-sizer')[0];
+  this.offsetter = this.scroller.getElementsByClassName('md-virtual-repeat-offsetter')[0];
+
+  $$rAF(angular.bind(this, this.updateSize));
+
+  // TODO: Come up with a more robust (But hopefully also quick!) way of
+  // detecting that we're not visible.
+  if ($attrs.ngHide) {
+    $scope.$watch($attrs.ngHide, angular.bind(this, function(hidden) {
+      if (!hidden) {
+        $$rAF(angular.bind(this, this.updateSize));
+      }
+    }));
+  }
+}
+VirtualRepeatContainerController.$inject = ["$$rAF", "$scope", "$element", "$attrs"];
+
+
+/** Called by the md-virtual-repeat inside of the container at startup. */
+VirtualRepeatContainerController.prototype.register = function(repeaterCtrl) {
+  this.repeater = repeaterCtrl;
+  
+  angular.element(this.scroller)
+      .on('scroll wheel touchmove touchend', angular.bind(this, this.handleScroll_));
+};
+
+
+/** @return {boolean} Whether the container is configured for horizontal scrolling. */
+VirtualRepeatContainerController.prototype.isHorizontal = function() {
+  return this.horizontal;
+};
+
+
+/** @return {number} The size (width or height) of the container. */
+VirtualRepeatContainerController.prototype.getSize = function() {
+  return this.size;
+};
+
+
+/** Instructs the container to re-measure its size. */
+VirtualRepeatContainerController.prototype.updateSize = function() {
+  this.size = this.isHorizontal()
+      ? this.$element[0].clientWidth
+      : this.$element[0].clientHeight;
+  this.repeater && this.repeater.containerUpdated();
+};
+
+
+/** @return {number} The container's scrollHeight or scrollWidth. */
+VirtualRepeatContainerController.prototype.getScrollSize = function() {
+  return this.scrollSize;
+};
+
+
+/**
+ * Sets the scrollHeight or scrollWidth. Called by the repeater based on
+ * its item count and item size.
+ * @param {number} The new size.
+ */
+VirtualRepeatContainerController.prototype.setScrollSize = function(size) {
+  if (this.scrollSize !== size) {
+    this.sizer.style[this.isHorizontal() ? 'width' : 'height'] = size + 'px';
+  }
+
+  this.scrollSize = size;
+};
+
+
+/** @return {number} The container's current scroll offset. */
+VirtualRepeatContainerController.prototype.getScrollOffset = function() {
+  return this.scrollOffset;
+};
+
+
+VirtualRepeatContainerController.prototype.resetScroll = function() {
+  this.scroller[this.isHorizontal() ? 'scrollLeft' : 'scrollTop'] = 0;
+  this.handleScroll_();
+};
+
+
+VirtualRepeatContainerController.prototype.handleScroll_ = function() {
+  var offset = this.isHorizontal() ? this.scroller.scrollLeft : this.scroller.scrollTop;
+  if (offset === this.scrollOffset) return;
+
+  var itemSize = this.repeater.getItemSize();
+  var numItems = Math.max(0, Math.floor(offset / itemSize) - VirtualRepeatController.NUM_EXTRA);
+
+  var transform = this.isHorizontal() ? 'translateX(' : 'translateY(';
+      transform +=  (numItems * itemSize) + 'px)';
+
+  this.scrollOffset = offset;
+  this.offsetter.style.webkitTransform = transform;
+  this.offsetter.style.transform = transform;
+
+  this.repeater.containerUpdated();
+};
+
+
+/**
+ * @ngdoc directive
+ * @name mdVirtualRepeat
+ * @module material.components.virtualRepeat
+ * @restrict A
+ * @priority 1000
+ * @description
+ * `md-virtual-repeat` specifies an element to repeat using virtual scrolling.
+ *
+ * Virtual repeat is a limited substitute for ng-repeat that renders only
+ * enough dom nodes to fill the container and recycling them as the user scrolls.
+ * Arrays, but not objects are supported for iteration.
+ * Track by, as alias, and (key, value) syntax are not supported.
+ *
+ * @usage
+ * <hljs lang="html">
+ * <md-virtual-repeat-container>
+ *   <div md-virtual-repeat="i in items" md-item-size="10">Hello {{i}}!</div>
+ * </md-virtual-repeat-container>
+ *
+ * <md-virtual-repeat-container md-orient-horizontal>
+ *   <div md-virtual-repeat="i in items" md-item-size="20">Hello {{i}}!</div>
+ * </md-virtual-repeat-container>
+ * </hljs>
+ *
+ * @param {number} md-item-size The height or width of the repeated elements (which
+ *     must be identical for each element). Required.
+ * @param {string=} md-extra-name Evaluates to an additional name to which
+ *     the current iterated item can be assigned on the repeated scope. (Needed
+ *     for use in md-autocomplete).
+ */
+function VirtualRepeatDirective($parse) {
+  return {
+    controller: VirtualRepeatController,
+    priority: 1000,
+    require: ['mdVirtualRepeat', '^^mdVirtualRepeatContainer'],
+    restrict: 'A',
+    terminal: true,
+    transclude: 'element',
+    compile: function VirtualRepeatCompile($element, $attrs) {
+      var expression = $attrs.mdVirtualRepeat;
+      var match = expression.match(/^\s*([\s\S]+?)\s+in\s+([\s\S]+?)\s*$/);
+      var repeatName = match[1];
+      var repeatListExpression = $parse(match[2]);
+      var extraName = $attrs.mdExtraName && $parse($attrs.mdExtraName);
+
+      return function VirtualRepeatLink($scope, $element, $attrs, ctrl, $transclude) {
+        ctrl[0].link_(ctrl[1], $transclude, repeatName, repeatListExpression, extraName);
+      };
+    }
+  };
+}
+VirtualRepeatDirective.$inject = ["$parse"];
+
+
+/** @ngInject */
+function VirtualRepeatController($scope, $element, $attrs, $browser, $document) {
+  this.$scope = $scope;
+  this.$element = $element;
+  this.$attrs = $attrs;
+  this.$browser = $browser;
+  this.$document = $document;
+
+  /** @type {!Function} Backup reference to $browser.$$checkUrlChange */
+  this.browserCheckUrlChange = $browser.$$checkUrlChange;
+  /** @type {number} Most recent starting repeat index (based on scroll offset) */
+  this.newStartIndex = 0;
+  /** @type {number} Most recent ending repeat index (based on scroll offset) */
+  this.newEndIndex = 0;
+  /** @type {number} Previous starting repeat index (based on scroll offset) */
+  this.startIndex = 0;
+  /** @type {number} Previous ending repeat index (based on scroll offset) */
+  this.endIndex = 0;
+  // TODO: measure width/height of first element from dom if not provided.
+  // getComputedStyle?
+  /** @type {number} Height/width of repeated elements. */
+  this.itemSize = $scope.$eval($attrs.mdItemSize);
+  /**
+   * Presently rendered blocks by repeat index.
+   * @type {Object<number, !VirtualRepeatController.Block}
+   */
+  this.blocks = {};
+  /** @type {Array<!VirtualRepeatController.Block>} A pool of presently unused blocks. */
+  this.pooledBlocks = [];
+}
+VirtualRepeatController.$inject = ["$scope", "$element", "$attrs", "$browser", "$document"];
+
+
+/**
+ * An object representing a repeated item.
+ * @typedef {{element: !jqLite, new: boolean, scope: !angular.Scope}}
+ */
+VirtualRepeatController.Block;
+
+
+/**
+ * Number of additional elements to render above and below the visible area inside
+ * of the virtual repeat container. A higher number results in less flicker when scrolling
+ * very quickly in Safari, but comes with a higher rendering and dirty-checking cost.
+ * @const {number}
+ */
+VirtualRepeatController.NUM_EXTRA = 3;
+
+
+/**
+ * Called at startup by the md-virtual-repeat postLink function.
+ * @param {!VirtualRepeatContainerController} container The container's controller.
+ * @param {!Function} transclude The repeated element's bound transclude function.
+ * @param {string} repeatName The left hand side of the repeat expression, indicating
+ *     the name for each item in the array.
+ * @param {!Function} repeatListExpression A compiled expression based on the right hand side
+ *     of the repeat expression. Points to the array to repeat over.
+ * @param {string|undefined} extraName The optional extra repeatName.
+ */
+VirtualRepeatController.prototype.link_ =
+    function(container, transclude, repeatName, repeatListExpression, extraName) {
+  this.container = container;
+  this.transclude = transclude;
+  this.repeatName = repeatName;
+  this.repeatListExpression = repeatListExpression;
+  this.extraName = extraName;
+  this.sized = false;
+
+  this.container.register(this);
+};
+
+
+/**
+ * Called by the container. Informs us that the containers scroll or size has
+ * changed.
+ */
+VirtualRepeatController.prototype.containerUpdated = function() {
+  if (!this.sized) {
+    this.sized = true;
+    this.$scope.$watchCollection(this.repeatListExpression,
+        angular.bind(this, this.virtualRepeatUpdate_));
+    this.items = this.repeatListExpression(this.$scope);
+  }
+
+  this.updateIndexes_();
+
+  if (this.newStartIndex !== this.startIndex ||
+      this.newEndIndex !== this.endIndex ||
+      this.container.getScrollOffset() > this.container.getScrollSize()) {
+    this.virtualRepeatUpdate_(this.items, this.items);
+  }
+};
+
+
+/**
+ * Called by the container. Returns the size of a single repeated item.
+ * @return {number} Size of a repeated item.
+ */
+VirtualRepeatController.prototype.getItemSize = function() {
+  return this.itemSize;
+};
+
+
+/**
+ * Updates the order and visible offset of repeated blocks in response to scrolling
+ * or items updates.
+ * @private
+ */
+VirtualRepeatController.prototype.virtualRepeatUpdate_ = function(items, oldItems) {
+  var itemsLength = items ? items.length : 0;
+
+  // If the number of items shrank, scroll up to the top.
+  if (this.items && itemsLength < this.items.length && this.container.getScrollOffset() !== 0) {
+    this.items = items;
+    this.container.resetScroll();
+    return;
+  }
+
+  this.items = items;
+  if (items !== oldItems) {
+    this.updateIndexes_();
+  }
+
+  this.parentNode = this.$element[0].parentNode;
+  this.container.setScrollSize(itemsLength * this.itemSize);
+
+  // Detach and pool any blocks that are no longer in the viewport.
+  Object.keys(this.blocks).forEach(function(blockIndex) {
+    var index = parseInt(blockIndex, 10);
+    if (index < this.newStartIndex || index >= this.newEndIndex) {
+      this.poolBlock_(index);
+    }
+  }, this);
+
+  // Add needed blocks.
+  // For performance reasons, temporarily block browser url checks as we digest
+  // the restored block scopes ($$checkUrlChange reads window.location to
+  // check for changes and trigger route change, etc, which we don't need when
+  // trying to scroll at 60fps).
+  this.$browser.$$checkUrlChange = angular.noop;
+
+  var i, block,
+      newStartBlocks = [],
+      newEndBlocks = [];
+
+  // Collect blocks at the top.
+  for (i = this.newStartIndex; i < this.newEndIndex && this.blocks[i] == null; i++) {
+    block = this.getBlock_(i);
+    this.updateBlock_(block, i);
+    newStartBlocks.push(block);
+  }
+
+  // Update blocks that are already rendered.
+  for (; this.blocks[i] != null; i++) {
+    this.updateBlock_(this.blocks[i], i);
+  }
+  var maxIndex = i - 1;
+
+  // Collect blocks at the end.
+  for (; i < this.newEndIndex; i++) {
+    block = this.getBlock_(i);
+    this.updateBlock_(block, i);
+    newEndBlocks.push(block);
+  }
+
+  // Attach collected blocks to the document.
+  if (newStartBlocks.length) {
+    this.parentNode.insertBefore(
+        this.domFragmentFromBlocks_(newStartBlocks),
+        this.$element[0].nextSibling);
+  }
+  if (newEndBlocks.length) {
+    this.parentNode.insertBefore(
+        this.domFragmentFromBlocks_(newEndBlocks),
+        this.blocks[maxIndex] && this.blocks[maxIndex].element[0].nextSibling);
+  }
+
+  // Restore $$checkUrlChange.
+  this.$browser.$$checkUrlChange = this.browserCheckUrlChange;
+
+  this.startIndex = this.newStartIndex;
+  this.endIndex = this.newEndIndex;
+};
+
+
+/**
+ * @param {number} index Where the block is to be in the repeated list.
+ * @return {!VirtualRepeatController.Block} A new or pooled block to place at the specified index.
+ * @private
+ */
+VirtualRepeatController.prototype.getBlock_ = function(index) {
+  if (this.pooledBlocks.length) {
+    return this.pooledBlocks.pop();
+  }
+
+  var block;
+  this.transclude(angular.bind(this, function(clone, scope) {
+    block = {
+      element: clone,
+      new: true,
+      scope: scope
+    };
+
+    this.updateScope_(scope, index);
+    this.parentNode.appendChild(clone[0]);
+  }));
+
+  return block;
+};
+
+
+/**
+ * Updates and if not in a digest cycle, digests the specified block's scope to the data
+ * at the specified index.
+ * @param {!VirtualRepeatController.Block} block The block whose scope should be updated.
+ * @param {number} index The index to set.
+ * @private
+ */
+VirtualRepeatController.prototype.updateBlock_ = function(block, index) {
+  this.blocks[index] = block;
+
+  if (!block.new &&
+      (block.scope.$index === index && block.scope[this.repeatName] === this.items[index])) {
+    return;
+  }
+  block.new = false;
+
+  // Update and digest the block's scope.
+  this.updateScope_(block.scope, index);
+
+  // Perform digest before reattaching the block.
+  // Any resulting synchronous dom mutations should be much faster as a result.
+  // This might break some directives, but I'm going to try it for now.
+  if (!this.$scope.$root.$$phase) {
+    block.scope.$digest();
+  }
+};
+
+
+/**
+ * Updates scope to the data at the specified index.
+ * @param {!angular.Scope} scope The scope which should be updated.
+ * @param {number} index The index to set.
+ * @private
+ */
+VirtualRepeatController.prototype.updateScope_ = function(scope, index) {
+  scope.$index = index;
+  scope[this.repeatName] = this.items[index];
+  if (this.extraName) scope[this.extraName(this.$scope)] = this.items[index];
+};
+
+
+/**
+ * Pools the block at the specified index (Pulls its element out of the dom and stores it).
+ * @param {number} index The index at which the block to pool is stored.
+ * @private
+ */
+VirtualRepeatController.prototype.poolBlock_ = function(index) {
+  this.pooledBlocks.push(this.blocks[index]);
+  this.parentNode.removeChild(this.blocks[index].element[0]);
+  delete this.blocks[index];
+};
+
+
+/**
+ * Produces a dom fragment containing the elements from the list of blocks.
+ * @param {!Array<!VirtualRepeatController.Block>} blocks The blocks whose elements
+ *     should be added to the document fragment.
+ * @return {DocumentFragment}
+ * @private
+ */
+VirtualRepeatController.prototype.domFragmentFromBlocks_ = function(blocks) {
+  var fragment = this.$document[0].createDocumentFragment();
+  blocks.forEach(function(block) {
+    fragment.appendChild(block.element[0]);
+  });
+  return fragment;
+};
+
+
+/**
+ * Updates start and end indexes based on length of repeated items and container size.
+ * @private
+ */
+VirtualRepeatController.prototype.updateIndexes_ = function() {
+  var itemsLength = this.items ? this.items.length : 0;
+  var containerLength = Math.ceil(this.container.getSize() / this.itemSize);
+
+  this.newStartIndex = Math.max(0, Math.min(
+      itemsLength - containerLength,
+      Math.floor(this.container.getScrollOffset() / this.itemSize)));
+  this.newEndIndex = Math.min(itemsLength, this.newStartIndex + containerLength +
+      VirtualRepeatController.NUM_EXTRA);
+  this.newStartIndex = Math.max(0, this.newStartIndex - VirtualRepeatController.NUM_EXTRA);
+};
 
 })();
 (function(){
@@ -15022,6 +15569,7 @@ function MdTabsController ($scope, $element, $window, $timeout, $mdConstant, $md
    * Forces the pagination to move the focused tab into view.
    */
   function adjustOffset (index) {
+    if (!elements.tabs[index]) return;
     if (ctrl.shouldCenterTabs) return;
     if (index == null) index = ctrl.focusIndex;
     var tab = elements.tabs[index],
