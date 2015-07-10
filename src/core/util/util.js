@@ -42,6 +42,8 @@ angular.module('material.core')
 
       // Annoying method to copy nodes to an array, thanks to IE
       nodesToArray: function (nodes) {
+        nodes = nodes || [ ];
+
         var results = [];
         for (var i = 0; i < nodes.length; ++i) {
           results.push(nodes.item(i));
@@ -51,6 +53,8 @@ angular.module('material.core')
 
       // Disables scroll around the passed element.
       disableScrollAround: function (element) {
+        Util.disableScrollAround._count = Util.disableScrollAround._count || 0;
+        ++Util.disableScrollAround._count;
         if (Util.disableScrollAround._enableScrolling) return Util.disableScrollAround._enableScrolling;
         element = angular.element(element);
         var body = $document[0].body,
@@ -58,15 +62,16 @@ angular.module('material.core')
           restoreElement = disableElementScroll();
 
         return Util.disableScrollAround._enableScrolling = function () {
-          restoreBody();
-          restoreElement();
-          delete Util.disableScrollAround._enableScrolling;
+          if (!--Util.disableScrollAround._count) {
+            restoreBody();
+            restoreElement();
+            delete Util.disableScrollAround._enableScrolling;
+          }
         };
 
         // Creates a virtual scrolling mask to absorb touchmove, keyboard, scrollbar clicking, and wheel events
         function disableElementScroll() {
-          var zIndex = $window.getComputedStyle(element[0]).zIndex - 1;
-          if (isNaN(zIndex)) zIndex = 99;
+          var zIndex = 50;
           var scrollMask = angular.element(
             '<div class="md-scroll-mask" style="z-index: ' + zIndex + '">' +
             '  <div class="md-scroll-mask-bar"></div>' +
@@ -105,21 +110,30 @@ angular.module('material.core')
         // Converts the body to a position fixed block and translate it to the proper scroll
         // position
         function disableBodyScroll() {
-          var restoreStyle = body.getAttribute('style') || '';
+          var htmlNode = body.parentNode;
+          var restoreHtmlStyle = htmlNode.getAttribute('style') || '';
+          var restoreBodyStyle = body.getAttribute('style') || '';
           var scrollOffset = body.scrollTop + body.parentElement.scrollTop;
           var clientWidth = body.clientWidth;
 
-          applyStyles(body, {
-            position: 'fixed',
-            width: '100%',
-            overflowY: 'scroll',
-            top: -scrollOffset + 'px'
-          });
+          if (body.scrollHeight > body.clientHeight) {
+            applyStyles(body, {
+              position: 'fixed',
+              width: '100%',
+              top: -scrollOffset + 'px'
+            });
+
+            applyStyles(htmlNode, {
+              overflowY: 'scroll'
+            });
+          }
+
 
           if (body.clientWidth < clientWidth) applyStyles(body, {overflow: 'hidden'});
 
           return function restoreScroll() {
-            body.setAttribute('style', restoreStyle);
+            body.setAttribute('style', restoreBodyStyle);
+            htmlNode.setAttribute('style', restoreHtmlStyle);
             body.scrollTop = scrollOffset;
           };
         }

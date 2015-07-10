@@ -1,9 +1,13 @@
+$menu-border-radius: 2px;
+
 .md-open-menu-container {
   position: fixed;
   left: 0;
   top: 0;
   z-index: $z-index-menu;
   opacity: 0;
+  border-radius: $menu-border-radius;
+  overflow: hidden;
 
   md-menu-divider {
     margin-top: $baseline-grid / 2;
@@ -11,7 +15,6 @@
     height: 1px;
     width: 100%;
   }
-
 
   md-menu-content > * {
     opacity: 0;
@@ -76,13 +79,20 @@ md-menu-item {
     height: 100%;
     padding-left: 2*$baseline-grid;
     padding-right: 2*$baseline-grid;
-    display: flex;
+    display: inline-block;
+    align-items: baseline;
+    align-content: left;
+    width:100%;
     md-icon {
       margin: auto 2*$baseline-grid auto 0;
     }
     p {
+      display:inline-block;
       margin: auto;
-      flex: 1;
+    }
+    span {
+      margin-top: auto;
+      margin-bottom: auto;
     }
   }
 }

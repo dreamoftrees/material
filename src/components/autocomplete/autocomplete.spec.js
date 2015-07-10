@@ -58,6 +58,8 @@ describe('<md-autocomplete>', function() {
       ctrl.keydown({ keyCode: $mdConstant.KEY_CODE.DOWN_ARROW, preventDefault: angular.noop });
       ctrl.keydown({ keyCode: $mdConstant.KEY_CODE.ENTER, preventDefault: angular.noop });
       scope.$apply();
+      $timeout.flush();
+
       expect(scope.searchText).toBe('foo');
       expect(scope.selectedItem).toBe(scope.match(scope.searchText)[0]);
     }));
@@ -96,6 +98,8 @@ describe('<md-autocomplete>', function() {
       ctrl.keydown({ keyCode: $mdConstant.KEY_CODE.DOWN_ARROW, preventDefault: angular.noop });
       ctrl.keydown({ keyCode: $mdConstant.KEY_CODE.ENTER, preventDefault: angular.noop });
       scope.$apply();
+      $timeout.flush();
+
       expect(scope.searchText).toBe('foo');
       expect(scope.selectedItem).toBe(scope.match(scope.searchText)[0]);
     }));
@@ -153,6 +157,7 @@ describe('<md-autocomplete>', function() {
 
       ctrl.select(0);
       element.scope().$apply();
+      $timeout.flush();
 
       expect(scope.searchText).toBe('foo');
       expect(scope.selectedItem).not.toBeNull();
@@ -179,7 +184,7 @@ describe('<md-autocomplete>', function() {
               md-selected-item="selectedItem"\
               md-search-text="searchText"\
               md-items="item in match(searchText)"\
-              md-selected-item-change="itemChanged(item)"\
+              md-selected-item-change="itemChanged(selectedItem)"\
               md-item-text="item.display"\
               placeholder="placeholder">\
             <span md-highlight-text="searchText">{{item.display}}</span>\
@@ -196,6 +201,7 @@ describe('<md-autocomplete>', function() {
 
       ctrl.select(0);
       element.scope().$apply();
+      $timeout.flush();
 
       expect(scope.itemChanged).toHaveBeenCalled();
       expect(scope.itemChanged.calls.mostRecent().args[0].display).toBe('foo');
@@ -213,8 +219,8 @@ describe('<md-autocomplete>', function() {
 
       expect(registeredWatcher.calls.count()).toBe(1);
       expect(scope.itemChanged.calls.count()).toBe(2);
-      expect(scope.itemChanged.calls.mostRecent().args[0]).toBeUndefined();
-      expect(scope.selectedItem).toBe(null);
+      expect(scope.itemChanged.calls.mostRecent().args[0]).toBeNull();
+      expect(scope.selectedItem).toBeNull();
     }));
   });
 
