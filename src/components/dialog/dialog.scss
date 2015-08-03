@@ -7,21 +7,24 @@ $dialog-padding: $baseline-grid * 3;
   display: flex;
   justify-content: center;
   align-items: center;
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   z-index: $z-index-dialog;
+  overflow: hidden;
 }
 
 md-dialog {
+
   &.md-transition-in {
     opacity: 1;
     transition: $swift-ease-out;
     transform: translate3d(0,0,0) scale(1.0);
   }
   &.md-transition-out {
+    opacity: 0;
     transition: $swift-ease-out;
     transform: translate3d(0,100%,0) scale(0.2);
   }

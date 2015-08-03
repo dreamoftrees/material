@@ -2,7 +2,7 @@ describe('$$interimElement service', function() {
 
   beforeEach(module('material.core'));
 
-  var $rootScope, $animate, $timeout;
+  var $rootScope, $animate, $q, $timeout;
   var $compilerSpy, $themingSpy;
 
   describe('provider', function() {
@@ -46,10 +46,10 @@ describe('$$interimElement service', function() {
     it('should not call onShow or onRemove on failing to load templates', function() {
       createInterimProvider('interimTest');
       inject(function($q, $rootScope, $rootElement, interimTest, $httpBackend, $animate) {
-        $compilerSpy.and.callFake(function() {
-          var deferred = $q.defer();
-          deferred.reject();
-          return deferred.promise;
+        $compilerSpy.and.callFake(function(reason) {
+          return $q(function(resolve,reject){
+            reject(reason || false);
+          });
         });
         $httpBackend.when('GET', '/fail-url.html').respond(500, '');
         var onShowCalled = false, onHideCalled = false;
@@ -59,8 +59,9 @@ describe('$$interimElement service', function() {
           onRemove: function() { onHideCalled = true; }
         });
         $animate.triggerCallbacks();
-        interimTest.hide();
+        interimTest.cancel();
         $animate.triggerCallbacks();
+
         expect(onShowCalled).toBe(false);
         expect(onHideCalled).toBe(false);
       });
@@ -249,7 +250,10 @@ describe('$$interimElement service', function() {
 
     beforeEach(function() {
       setup();
-      inject(function($$interimElement) {
+      inject(function($$interimElement, _$q_, _$timeout_) {
+        $q = _$q_;
+        $timeout = _$timeout_;
+
         Service = $$interimElement();
 
         Service.show = tailHook(Service.show, flush);
@@ -258,11 +262,71 @@ describe('$$interimElement service', function() {
       });
     });
 
+
     describe('instance#show', function() {
+
+
       it('inherits default options', inject(function($$interimElement) {
         var defaults = { templateUrl: 'testing.html' };
         Service.show(defaults);
         expect($compilerSpy.calls.mostRecent().args[0].templateUrl).toBe('testing.html');
+      }));
+
+      describe('captures and fails with ',function(){
+
+       it('internal reject during show()', inject(function($q,$timeout) {
+         var showFailed, onShowFail = function() {
+           showFailed = true;
+         };
+
+         Service.show({
+           templateUrl: 'testing.html',
+           onShow : function() {   return $q.reject("failed"); }
+         })
+         .catch( onShowFail );
+         $timeout.flush();
+
+         expect(showFailed).toBe(true);
+       }));
+
+       it('internal exception during show()', inject(function($q,$timeout) {
+         var showFailed, onShowFail = function(reason) {
+           showFailed = reason;
+         };
+
+         Service.show({
+           templateUrl: 'testing.html',
+           onShow : function() {   throw new Error("exception"); }
+         })
+         .catch( onShowFail );
+         $timeout.flush();
+
+         expect(showFailed).toBe('exception');
+       }));
+
+      });
+
+      it('show() captures pending promise that resolves with hide()', inject(function($q,$timeout) {
+        var showFinished, onShowHandler = function() {
+          showFinished = true;
+        };
+
+        Service.show({
+          templateUrl: 'testing.html',
+          onShow : function() {
+            return $q.when(true);
+          }
+        })
+        .then( onShowHandler );
+        $timeout.flush();
+
+        expect(showFinished).toBeUndefined();
+
+        Service.hide('confirmed');
+        $timeout.flush();
+
+        expect(showFinished).toBe(true);
+
       }));
 
       it('forwards options to $mdCompiler', inject(function($$interimElement) {
@@ -444,6 +508,62 @@ describe('$$interimElement service', function() {
 
         expect(resolved).toBe(true);
       }));
+
+      describe('captures and fails with ',function(){
+
+       it('internal exception during hide()', inject(function($q, $timeout) {
+         var showGood, hideFail,
+             onShowHandler = function(reason) {  showGood = true;},
+             onHideHandler = function(reason) {
+               hideFail  = true;
+             };
+         var options = {
+               templateUrl: 'testing.html',
+               onShow   : function() {  return $q.when(true)  },
+               onRemove : function() {  throw new Error("exception"); }
+             };
+
+         Service.show(options).then( onShowHandler, onHideHandler );
+         $timeout.flush();
+
+         expect(showGood).toBeUndefined();
+         expect(hideFail).toBeUndefined();
+
+         Service.hide().then( onShowHandler, onHideHandler );
+         $timeout.flush();
+
+         expect(showGood).toBeUndefined();
+         expect(hideFail).toBe(true);
+       }));
+
+       it('internal reject during hide()', inject(function($q, $timeout) {
+          var showGood, hideFail,
+              onShowHandler = function(reason) {  showGood = true;},
+              onHideHandler = function(reason) {
+                hideFail  = reason;
+              };
+          var options = {
+                templateUrl: 'testing.html',
+                onShow   : function() {  return $q.when(true)  },
+                onRemove : function() {  return $q.reject("failed");  }
+              };
+
+          Service.show(options).then( onShowHandler, onHideHandler );
+          $timeout.flush();
+
+          expect(showGood).toBeUndefined();
+          expect(hideFail).toBeUndefined();
+
+          Service.hide().then( onShowHandler, onHideHandler );
+          $timeout.flush();
+
+          expect(showGood).toBeUndefined();
+          expect(hideFail).toBe("failed");
+        }));
+
+      });
+
+
     });
 
     describe('#cancel', function() {
@@ -501,13 +621,13 @@ describe('$$interimElement service', function() {
 
       $compilerSpy.and.callFake(function(opts) {
         var el = $compile(opts.template);
-        var deferred = $q.defer();
-        deferred.resolve({
-          link: el,
-          locals: {}
+        return $q(function(resolve){
+          resolve({
+            link: el,
+            locals: {}
+          });
+          !$rootScope.$$phase && $rootScope.$apply();
         });
-        !$rootScope.$$phase && $rootScope.$apply();
-        return deferred.promise;
       });
     });
   }

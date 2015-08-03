@@ -5,7 +5,7 @@ describe('md-menu directive', function () {
   beforeEach(inject(function ($mdUtil, $$q, $document, _$mdMenu_, _$timeout_) {
     $mdMenu = _$mdMenu_;
     $timeout = _$timeout_;
-    $mdUtil.transitionEndPromise = function () {
+    $mdUtil.dom.animator.waitTransitionEnd = function () {
       return $$q.when(true);
     };
     var abandonedMenus = $document[0].querySelectorAll('.md-menu-container');
@@ -22,6 +22,7 @@ describe('md-menu directive', function () {
 
     expect(buildBadMenu).toThrow();
   }));
+
 
   it('removes everything but the first element', function () {
     var menu = setup()[0];
@@ -72,7 +73,7 @@ describe('md-menu directive', function () {
     expect(getOpenMenuContainer().length).toBe(0);
   }));
 
-  describe('closes with ng-click', function() {
+  describe('closes with -', function() {
     it('closes on normal option click', function () {
       expect(getOpenMenuContainer().length).toBe(0);
 
@@ -91,53 +92,41 @@ describe('md-menu directive', function () {
       expect(getOpenMenuContainer().length).toBe(0);
     });
 
-    it('closes with data-ng-click', inject(function($rootScope, $compile) {
-      expect(getOpenMenuContainer().length).toBe(0);
+    itClosesWithAttributes([
+      'data-ng-click', 'x-ng-click',
+      'ui-sref','data-ui-sref', 'x-ui-sref',
+      'ng-href', 'data-ng-href', 'x-ng-href'
+    ]);
 
-      var template = '' +
-        '<md-menu>' +
-        ' <button ng-click="$mdOpenMenu($event)">Hello World</button>' +
-        ' <md-menu-content>' +
-        '  <md-menu-item>' +
-        '    <md-button data-ng-click="doSomething($event)"></md-button>' +
-        '  </md-menu-item>' +
-        ' </md-menu-content>' +
-        '</md-menu>';
+    function itClosesWithAttributes(types) {
+      for (var i = 0; i < types.length; ++i) {
+        it('closes with ' + types[i], testAttribute(types[i]));
+      }
 
-      openMenu($compile(template)($rootScope));
-      expect(getOpenMenuContainer().length).toBe(1);
+      function testAttribute(attr) {
+        return inject(function($rootScope, $compile) {
+          var template = '' +
+            '<md-menu>' +
+            ' <button ng-click="$mdOpenMenu($event)">Hello World</button>' +
+            ' <md-menu-content>' +
+            '  <md-menu-item>' +
+            '    <md-button ' + attr + '=""></md-button>' +
+            '  </md-menu-item>' +
+            ' </md-menu-content>' +
+            '</md-menu>';
 
-      var btn = getOpenMenuContainer()[0].querySelector('md-button');
-          btn.click();
+          openMenu($compile(template)($rootScope));
+          expect(getOpenMenuContainer().length).toBe(1);
 
-      waitForMenuClose();
+          var btn = getOpenMenuContainer()[0].querySelector('md-button');
+              btn.click();
 
-      expect(getOpenMenuContainer().length).toBe(0);
-    }));
+          waitForMenuClose();
 
-    it('closes with x-ng-click', inject(function($rootScope, $compile) {
-      expect(getOpenMenuContainer().length).toBe(0);
-
-      var template = '' +
-        '<md-menu>' +
-        ' <button ng-click="$mdOpenMenu($event)">Hello World</button>' +
-        ' <md-menu-content>' +
-        '  <md-menu-item>' +
-        '    <md-button x-ng-click="doSomething($event)"></md-button>' +
-        '  </md-menu-item>' +
-        ' </md-menu-content>' +
-        '</md-menu>';
-
-      openMenu($compile(template)($rootScope));
-      expect(getOpenMenuContainer().length).toBe(1);
-
-      var btn = getOpenMenuContainer()[0].querySelector('md-button');
-          btn.click();
-
-      waitForMenuClose();
-
-      expect(getOpenMenuContainer().length).toBe(0);
-    }));
+          expect(getOpenMenuContainer().length).toBe(0);
+        });
+      }
+    }
   });
 
   // ********************************************
